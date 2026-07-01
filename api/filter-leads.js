@@ -5,6 +5,10 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method Not Allowed' });
     }
+    
+    if (process.env.APP_PASSWORD && req.headers["x-app-password"] !== process.env.APP_PASSWORD) {
+      return res.status(401).json({ error: "Unauthorized. Please set your passcode in Settings." });
+    }
 
     const API_KEY = process.env.ANTHROPIC_API_KEY;
     if (!API_KEY) {
@@ -131,7 +135,7 @@ Return strictly valid JSON with no markdown formatting. Schema:
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-3-5-sonnet-20240620",
         max_tokens: 300,
         system: RUBRIC_PROMPT,
         temperature: 0.1,
@@ -148,7 +152,12 @@ Return strictly valid JSON with no markdown formatting. Schema:
 
     const data = await anthropicRes.json();
     let text = data?.content?.[0]?.text || "";
-    text = text.replace(/```json/i, "").replace(/```/g, "").trim();
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      text = match[0];
+    } else {
+      text = text.replace(/```json/i, "").replace(/```/g, "").trim();
+    }
     
     console.log("Claude Evaluation:", text);
     const evaluation = JSON.parse(text);

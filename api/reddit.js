@@ -76,6 +76,10 @@ function extractComments(children, maxCount = 8) {
 
 export default async function handler(req, res) {
   try {
+    if (process.env.APP_PASSWORD && req.headers["x-app-password"] !== process.env.APP_PASSWORD) {
+      return res.status(401).json({ error: "Unauthorized. Please set your passcode in Settings." });
+    }
+    
     // Accept GET ?url=... or POST { url: '...' }
     let inputUrl;
     if (req.method === "GET" || !req.method) {

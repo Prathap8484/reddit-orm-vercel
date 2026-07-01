@@ -1,5 +1,10 @@
+import { XMLParser } from "fast-xml-parser";
+
 export default async function handler(req, res) {
   try {
+    if (process.env.APP_PASSWORD && req.headers["x-app-password"] !== process.env.APP_PASSWORD) {
+      return res.status(401).json({ error: "Unauthorized. Please set your passcode in Settings." });
+    }
     const query = req.query.q || "";
     if (!query) return res.status(400).json({ error: "Missing query" });
 
@@ -19,55 +24,78 @@ export default async function handler(req, res) {
 
     const xml = await response.text();
     
-    // Parse the RSS XML manually using Regex (since Vercel edge doesn't have DOMParser)
-    const entries = xml.match(/<entry>[\s\S]*?<\/entry>/g) || [];
+    const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_" });
+    const parsed = parser.parse(xml);
+    
+    let entries = [];
+    if (parsed.feed && parsed.feed.entry) {
+      entries = Array.isArray(parsed.feed.entry) ? parsed.feed.entry : [parsed.feed.entry];
+    }
     
     const children = entries.map(entry => {
-      const titleMatch = entry.match(/<title>([\s\S]*?)<\/title>/);
-      const linkMatch = entry.match(/<link href="([^"]+)"/);
-      const contentMatch = entry.match(/<content type="html">([\s\S]*?)<\/content>/);
-      const authorMatch = entry.match(/<name>\/u\/([^<]+)<\/name>/);
-      const categoryMatch = entry.match(/<category term="([^"]+)"/);
-      const updatedMatch = entry.match(/<updated>([^<]+)<\/updated>/);
-
-      const title = titleMatch ? titleMatch[1] : "No Title";
-      const fullUrl = linkMatch ? linkMatch[1] : "";
+      const title = entry.title || "No Title";
+      
+      let fullUrl = "";
+      if (entry.link) {
+         if (Array.isArray(entry.link)) {
+            const linkObj = entry.link.find(l => l["@_href"]);
+            if (linkObj) fullUrl = linkObj["@_href"];
+         } else if (entry.link["@_href"]) {
+            fullUrl = entry.link["@_href"];
+         }
+      }
+      
       let permalink = fullUrl.replace("https://www.reddit.com", "");
       if (!permalink.startsWith("/")) permalink = "/" + permalink;
       
-      // Strict filter: If it's not a post (e.g., a subreddit link), reject it
       if (!permalink.includes("/comments/")) {
         return null;
       }
       
-      const subreddit = categoryMatch ? categoryMatch[1] : "";
+      let subreddit = "";
+      if (entry.category) {
+        if (Array.isArray(entry.category)) {
+           const cat = entry.category.find(c => c["@_term"]);
+           if (cat) subreddit = cat["@_term"];
+        } else if (entry.category["@_term"]) {
+           subreddit = entry.category["@_term"];
+        }
+      }
       
-      const updatedStr = updatedMatch ? updatedMatch[1] : new Date().toISOString();
+      const updatedStr = entry.updated || new Date().toISOString();
       const parsedTime = new Date(updatedStr).getTime();
       const created_utc = isNaN(parsedTime) ? 0 : Math.floor(parsedTime / 1000);
       
-      // Strict filter: Reject posts older than 1 month (30 days)
       const oneMonthAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
       if (created_utc < oneMonthAgo) {
         return null;
       }
       
-      // Decode basic HTML entities from content
-      let selftext = contentMatch ? contentMatch[1] : "";
+      let selftext = "";
+      if (entry.content && typeof entry.content === "object" && entry.content["#text"]) {
+         selftext = entry.content["#text"];
+      } else if (typeof entry.content === "string") {
+         selftext = entry.content;
+      }
+      
       selftext = selftext.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
-      // Strip HTML tags for the text preview
       selftext = selftext.replace(/<[^>]+>/g, " ").trim();
-
+      
+      let author = "unknown";
+      if (entry.author && entry.author.name) {
+         author = entry.author.name.replace("/u/", "");
+      }
+      
       return {
         data: {
           title,
           permalink,
           subreddit,
-          ups: 0, // RSS doesn't provide exact upvotes easily
-          num_comments: 0, // RSS doesn't provide comment count easily
-          created_utc, // Added to fix date parsing errors in app.js
+          ups: 0,
+          num_comments: 0,
+          created_utc,
           selftext,
-          author: authorMatch ? authorMatch[1] : "unknown"
+          author
         }
       };
     }).filter(Boolean);

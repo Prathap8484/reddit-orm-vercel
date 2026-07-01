@@ -1,6 +1,8 @@
 import fs from "fs";
 import readline from "readline";
 import "dotenv/config";
+import * as cheerio from "cheerio";
+import { parseCsv } from "./harvest.mjs";
 
 // Configuration
 const IN_FILE = process.argv[2] || "master.csv";
@@ -54,14 +56,12 @@ async function fetchRedditPost(permalink) {
     if (!res.ok) return null;
     const html = await res.text();
     
+    const $ = cheerio.load(html);
     const mdBlocks = [];
-    const regex = /<div class="md">([\s\S]*?)<\/div>/g;
-    let match;
-    while ((match = regex.exec(html)) !== null) {
-      let text = match[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      text = text.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0?39;/g, "'");
+    $('div.md').each((i, el) => {
+      let text = $(el).text().replace(/\s+/g, " ").trim();
       if (text) mdBlocks.push(text);
-    }
+    });
     
     // We already have title & subreddit from the CSV. Just return the text blocks.
     return {
@@ -93,7 +93,7 @@ ${postData.topComments}
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-3-5-sonnet-20240620",
         max_tokens: 300,
         system: RUBRIC_PROMPT,
         temperature: 0.1,
@@ -108,7 +108,12 @@ ${postData.topComments}
     const data = await res.json();
     let text = data?.content?.[0]?.text || "";
     // Clean potential markdown wrap
-    text = text.replace(/```json/i, "").replace(/```/g, "").trim();
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      text = match[0];
+    } else {
+      text = text.replace(/```json/i, "").replace(/```/g, "").trim();
+    }
     
     return JSON.parse(text);
   } catch (err) {
@@ -131,24 +136,18 @@ async function run() {
     fs.writeFileSync(OUT_FILE, "Decision,Score,Theme,Feature,Country,Reason,Subreddit,Title,Link\n");
   }
 
-  const fileStream = fs.createReadStream(IN_FILE);
-  const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
+  const csvText = fs.readFileSync(IN_FILE, 'utf8');
+  const rows = parseCsv(csvText);
 
-  let isHeader = true;
   let totalProcessed = 0;
   let totalAccepted = 0;
 
-  for await (const line of rl) {
-    if (isHeader) { isHeader = false; continue; }
-    if (!line.trim()) continue;
+  for (const row of rows) {
+    const subreddit = row.subreddit ? row.subreddit.replace("r/", "") : "unknown";
+    const title = row.title || "";
+    const link = row.link || "";
 
-    // naive csv split
-    const cols = line.split(",");
-    if (cols.length < 8) continue;
-    
-    const subreddit = cols[2].replace(/"/g, "");
-    const title = cols[3].replace(/"/g, "");
-    const link = cols[7].replace(/"/g, "");
+    if (!link) continue;
 
     console.log(`\n[Processing] ${title.substring(0,50)}...`);
     

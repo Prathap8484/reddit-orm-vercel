@@ -38,6 +38,10 @@ const mime = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".ico": "image/x-icon",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".webp": "image/webp",
+  ".map": "application/json"
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -102,12 +106,19 @@ const server = http.createServer(async (req, res) => {
     // ── API routes ───────────────────────────────────────────────
     const apiHandler = apiRoutes[url.pathname];
     if (apiHandler) {
+      if (process.env.APP_PASSWORD && req.headers["x-app-password"] !== process.env.APP_PASSWORD) {
+        send(res, 401, JSON.stringify({ error: "Unauthorized. Please set your passcode in Settings." }), {
+          "content-type": "application/json; charset=utf-8"
+        });
+        return;
+      }
+      
       const bodyText = await readBody(req);
       const body = bodyText ? JSON.parse(bodyText) : {};
       const apiRes = makeRes(res);
       // Simulate Vercel's req object
       await apiHandler(
-        { method: req.method, body, query: Object.fromEntries(url.searchParams.entries()) },
+        { method: req.method, body, query: Object.fromEntries(url.searchParams.entries()), headers: req.headers },
         apiRes
       );
       return;

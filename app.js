@@ -856,9 +856,10 @@ async function generateAllComments(post, replyOpts = {}) {
   };
 
   try {
+    const passcode = localStorage.getItem("appPasscode") || "";
     const response = await fetch(`${apiBase}/api/generate-comments`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", "x-app-password": passcode },
       body: JSON.stringify(requestBody),
     });
     const payload = await response.json();
@@ -993,9 +994,10 @@ async function fetchContext() {
         payload.comments = (payload.topCommentTexts || []).map(t => ({ body: t }));
       } catch (clientErr) {
         // CORS or Reddit blocked client-side — try server route
+        const passcode = localStorage.getItem("appPasscode") || "";
         const r = await fetch(`${apiBase}/api/reddit`, {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json", "x-app-password": passcode },
           body: JSON.stringify({ url }),
         });
         const serverPayload = await r.json();
@@ -1851,6 +1853,7 @@ function init() {
   $("dailyTargetInput").value = savedTarget;
   $("userNameInput").value = savedName;
   $("ownerInput").value = savedName;
+  if ($("passcodeInput")) $("passcodeInput").value = localStorage.getItem("appPasscode") || "";
 
   resetForm();
   renderTracker();
@@ -2011,6 +2014,11 @@ function init() {
   $("userNameInput").addEventListener("change", (e) => {
     saveSetting("orm_user_name", e.target.value.trim());
   });
+  if ($("passcodeInput")) {
+    $("passcodeInput").addEventListener("change", (e) => {
+      localStorage.setItem("appPasscode", e.target.value.trim());
+    });
+  }
   $("clearAllBtn").addEventListener("click", () => {
     if (confirm("Delete all tracked posts? This cannot be undone.")) {
       state.posts = [];
@@ -2060,7 +2068,8 @@ function init() {
       } catch (err) {
         // Fallback to server proxy
         const proxyUrl = `${apiBase}/api/reddit-search?q=${encodeURIComponent(finalQuery)}`;
-        res = await fetch(proxyUrl);
+        const passcode = localStorage.getItem("appPasscode") || "";
+        res = await fetch(proxyUrl, { headers: { "x-app-password": passcode } });
       }
       if (!res.ok) throw new Error(`Reddit returned ${res.status}`);
       const data = await res.json();
@@ -2265,9 +2274,10 @@ async function startAIFilter() {
     $("filterCurrentPost").textContent = `Evaluating: ${post.title}`;
     
     try {
+      const passcode = localStorage.getItem("appPasscode") || "";
       const res = await fetch("/api/filter-leads", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-app-password": passcode },
         body: JSON.stringify(post)
       });
       
