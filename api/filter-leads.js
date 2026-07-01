@@ -14,27 +14,32 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Fetch Reddit HTML
-    const redditRes = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36" }
+    // 1. Fetch Reddit RSS to bypass Datacenter IP blocking
+    // Ensure URL is a comments link, strip trailing slash, and add .rss
+    let rssUrl = url.replace(/\/$/, '') + '.rss';
+    
+    const redditRes = await fetch(rssUrl, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" }
     });
     
     if (!redditRes.ok) {
-      return res.status(redditRes.status).json({ error: 'Failed to fetch Reddit page' });
+      return res.status(redditRes.status).json({ error: 'Failed to fetch Reddit RSS page' });
     }
 
-    const html = await redditRes.text();
-    const mdBlocks = [];
-    const regex = /<div class="md">([\s\S]*?)<\/div>/g;
+    const xml = await redditRes.text();
+    
+    // Extract contents from RSS
+    const entryRegex = /<content type="html">([\s\S]*?)<\/content>/g;
+    const entries = [];
     let match;
-    while ((match = regex.exec(html)) !== null) {
-      let text = match[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      text = text.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0?39;/g, "'");
-      if (text) mdBlocks.push(text);
+    while ((match = entryRegex.exec(xml)) !== null) {
+      let text = match[1].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+      text = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      entries.push(text);
     }
 
-    const selftext = mdBlocks[0] || "";
-    const topComments = mdBlocks.slice(1, 4).join("\n---\n");
+    const selftext = entries[0] || "";
+    const topComments = entries.slice(1, 4).join("\n---\n");
 
     const inputData = `[POST TO EVALUATE]
 Subreddit: r/${subreddit || "unknown"}
