@@ -2073,6 +2073,19 @@ function init() {
       currentLeads = posts;
       $("copyToSheetsBtn").style.display = "block";
       
+      try {
+        const cached = currentLeads.map(child => ({
+          url: `https://www.reddit.com${child.data.permalink}`,
+          selftext: child.data.selftext || ""
+        }));
+        // Merge with existing cache to keep historical leads, keeping the newest 500
+        const existingCache = JSON.parse(localStorage.getItem('reddit_cached_leads') || '[]');
+        const merged = [...cached, ...existingCache].slice(0, 500);
+        localStorage.setItem('reddit_cached_leads', JSON.stringify(merged));
+      } catch (e) {
+        console.error("Failed to cache leads", e);
+      }
+      
       posts.forEach(child => {
         const p = child.data;
         const card = document.createElement("div");
@@ -2156,8 +2169,9 @@ function init() {
       
       // Convert Reddit UTC timestamp to local date string
       const date = new Date(p.created_utc * 1000).toLocaleDateString();
+      const cleanSelftext = (p.selftext || "").replace(/\t/g, " ").replace(/\n/g, " ");
       
-      tsv += `${title}\t${url}\t${commentCol}\t${upvotes}\t${numComments}\t${date}\n`;
+      tsv += `${title}\t${url}\t${commentCol}\t${upvotes}\t${numComments}\t${date}\t${cleanSelftext}\n`;
     });
 
     navigator.clipboard.writeText(tsv).then(() => {
@@ -2216,9 +2230,15 @@ async function startAIFilter() {
       const subreddit = subMatch ? subMatch[1] : "unknown";
       
       let selftext = "";
-      const matchedCache = cachedLeads.find(c => c.url === url || url.includes(c.url) || c.url.includes(url));
-      if (matchedCache) {
-        selftext = matchedCache.selftext;
+      if (cols.length >= 7 && cols[6] && !cols[6].startsWith('http')) {
+         selftext = cols[6];
+      }
+      
+      if (!selftext) {
+        const matchedCache = cachedLeads.find(c => c.url === url || url.includes(c.url) || c.url.includes(url));
+        if (matchedCache) {
+          selftext = matchedCache.selftext;
+        }
       }
       
       postsToFilter.push({ title, url, subreddit, selftext });
