@@ -2266,9 +2266,16 @@ async function startAIFilter() {
           `;
           $("filterResultsArea").appendChild(div);
         }
+      } else {
+        const errText = await res.text();
+        console.error("API Error for", post.url, res.status, errText);
+        $("filterCurrentPost").textContent = `Error ${res.status} for ${post.title.substring(0,20)}...`;
+        await new Promise(r => setTimeout(r, 1000)); // Pause briefly to show the error
       }
     } catch (err) {
       console.error("Filter failed for", post.url, err);
+      $("filterCurrentPost").textContent = `Crash: ${err.message}`;
+      await new Promise(r => setTimeout(r, 1000));
     }
 
     processed++;
