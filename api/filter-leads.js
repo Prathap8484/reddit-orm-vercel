@@ -1,31 +1,38 @@
 export const maxDuration = 60;
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
-  const { url, title, subreddit } = req.body;
-  if (!url) {
-    return res.status(400).json({ error: 'Missing url' });
-  }
-
-  const API_KEY = process.env.ANTHROPIC_API_KEY;
-  if (!API_KEY) {
-    return res.status(500).json({ error: 'Missing ANTHROPIC_API_KEY' });
-  }
-
   try {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+
+    const API_KEY = process.env.ANTHROPIC_API_KEY;
+    if (!API_KEY) {
+      console.error("Missing ANTHROPIC_API_KEY");
+      return res.status(500).json({ error: 'Missing ANTHROPIC_API_KEY' });
+    }
+
+    const { url, title, subreddit } = req.body;
+    if (!url) {
+      console.error("Missing URL in req.body", req.body);
+      return res.status(400).json({ error: 'Missing URL' });
+    }
+
+    console.log(`Processing URL: ${url}`);
+
     // 1. Fetch Reddit RSS to bypass Datacenter IP blocking
-    // Ensure URL is a comments link, strip trailing slash, and add .rss
     let rssUrl = url.replace(/\/$/, '') + '.rss';
     
+    console.log(`Fetching RSS: ${rssUrl}`);
     const redditRes = await fetch(rssUrl, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" }
     });
     
+    console.log(`Reddit RSS Status: ${redditRes.status}`);
     if (!redditRes.ok) {
-      return res.status(redditRes.status).json({ error: 'Failed to fetch Reddit RSS page' });
+      const redditErr = await redditRes.text();
+      console.error(`Reddit fetch failed: ${redditRes.status}`, redditErr);
+      return res.status(redditRes.status).json({ error: 'Failed to fetch Reddit RSS page', details: redditErr });
     }
 
     const xml = await redditRes.text();
@@ -40,6 +47,7 @@ export default async function handler(req, res) {
       entries.push(text);
     }
 
+    console.log(`Parsed ${entries.length} RSS entries`);
     const selftext = entries[0] || "";
     const topComments = entries.slice(1, 4).join("\n---\n");
 
@@ -85,6 +93,7 @@ Return strictly valid JSON with no markdown formatting. Schema:
   "reason": "<short explanation>"
 }`;
 
+    console.log("Calling Claude API...");
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { 
@@ -101,20 +110,23 @@ Return strictly valid JSON with no markdown formatting. Schema:
       })
     });
 
+    console.log(`Claude Status: ${anthropicRes.status}`);
     if (!anthropicRes.ok) {
-      const errText = await anthropicRes.text();
-      return res.status(anthropicRes.status).json({ error: 'Anthropic API Error', details: errText });
+      const errorText = await anthropicRes.text();
+      console.error("Claude API Error:", errorText);
+      return res.status(500).json({ error: 'Claude API failed', details: errorText });
     }
 
     const data = await anthropicRes.json();
     let text = data?.content?.[0]?.text || "";
     text = text.replace(/```json/i, "").replace(/```/g, "").trim();
     
+    console.log("Claude Evaluation:", text);
     const evaluation = JSON.parse(text);
     return res.status(200).json(evaluation);
 
   } catch (err) {
-    console.error("Filter API Error:", err);
+    console.error("Fatal Error in filter-leads API:", err);
     return res.status(500).json({ error: "Internal Server Error", details: err.message });
   }
 }
