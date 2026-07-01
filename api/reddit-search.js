@@ -46,6 +46,12 @@ export default async function handler(req, res) {
       const parsedTime = new Date(updatedStr).getTime();
       const created_utc = isNaN(parsedTime) ? 0 : Math.floor(parsedTime / 1000);
       
+      // Strict filter: Reject posts older than 1 month (30 days)
+      const oneMonthAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
+      if (created_utc < oneMonthAgo) {
+        return null;
+      }
+      
       // Decode basic HTML entities from content
       let selftext = contentMatch ? contentMatch[1] : "";
       selftext = selftext.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
