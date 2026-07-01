@@ -25,11 +25,14 @@ export default async function handler(req, res) {
 
     // 1. Fetch Reddit RSS ONLY if client did not provide selftext
     if (!selftext) {
-      let rssUrl = url.replace(/\/$/, '') + '.rss';
+      console.log(`Selftext not provided by client. Fallback to scraping Reddit search for title: ${title}`);
       
-      console.log(`Fetching RSS: ${rssUrl}`);
-      const redditRes = await fetch(rssUrl, {
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" }
+      // Use search.rss instead of comments/...rss because comments.rss is IP-banned on Vercel Datacenters
+      const searchRssUrl = `https://www.reddit.com/r/${subreddit}/search.rss?q=${encodeURIComponent(title)}&restrict_sr=on&sort=relevance&t=all`;
+      
+      console.log(`Fetching RSS Fallback: ${searchRssUrl}`);
+      const redditRes = await fetch(searchRssUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36" }
       });
       
       console.log(`Reddit RSS Status: ${redditRes.status}`);
@@ -41,19 +44,40 @@ export default async function handler(req, res) {
 
       const xml = await redditRes.text();
       
-      // Extract contents from RSS
-      const entryRegex = /<content type="html">([\s\S]*?)<\/content>/g;
-      const entries = [];
+      // We are looking for the entry that matches our post
+      const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+      let matchedEntry = "";
       let match;
-      while ((match = entryRegex.exec(xml)) !== null) {
-        let text = match[1].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
-        text = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-        entries.push(text);
-      }
+      
+      // Extract post ID from original URL to ensure we match the right post in search results
+      const urlParts = url.split('/');
+      const postIdIndex = urlParts.indexOf('comments') + 1;
+      const postId = postIdIndex > 0 && postIdIndex < urlParts.length ? urlParts[postIdIndex] : "";
 
-      console.log(`Parsed ${entries.length} RSS entries`);
-      selftext = entries[0] || "";
-      topComments = entries.slice(1, 4).join("\n---\n");
+      while ((match = entryRegex.exec(xml)) !== null) {
+        const entryBlock = match[1];
+        if (postId && entryBlock.includes(postId)) {
+           matchedEntry = entryBlock;
+           break;
+        }
+      }
+      
+      // If we couldn't match by ID, just take the first entry since we searched by exact title
+      if (!matchedEntry) {
+         const firstMatch = /<entry>([\s\S]*?)<\/entry>/.exec(xml);
+         if (firstMatch) matchedEntry = firstMatch[1];
+      }
+      
+      if (matchedEntry) {
+        const contentMatch = matchedEntry.match(/<content type="html">([\s\S]*?)<\/content>/);
+        if (contentMatch) {
+          let text = contentMatch[1].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+          selftext = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+        }
+        console.log("Successfully extracted selftext from search.rss fallback");
+      } else {
+        console.log("Could not find matching post in search.rss fallback");
+      }
     } else {
       console.log("Using cached selftext from client. Bypassing Reddit fetch.");
     }
