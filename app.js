@@ -2168,12 +2168,139 @@ function init() {
     });
   });
 
+  $("startFilterBtn").addEventListener("click", startAIFilter);
+  $("exportFilteredBtn").addEventListener("click", exportFilteredCsv);
+
   // ── Batch + export ───────────────────────────────────────────────
   $("batchAddBtn").addEventListener("click", addBatchUrls);
   $("batchScrapeBtn").addEventListener("click", scrapeBatchUrls);
   $("exportCsvBtn").addEventListener("click", exportCsv);
   $("exportJsonBtn").addEventListener("click", exportJson);
   $("importJsonInput").addEventListener("change", importJson);
+}
+
+// ── AI Filter Studio ───────────────────────────────────────────────
+let filterAcceptedLeads = [];
+
+async function startAIFilter() {
+  const text = $("filterInput").value.trim();
+  if (!text) {
+    toast("Please paste some raw CSV data first.");
+    return;
+  }
+
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  const postsToFilter = [];
+  
+  for (const line of lines) {
+    if (line.toLowerCase().startsWith("title")) continue;
+    
+    let cols = line.split("\t");
+    if (cols.length < 2) cols = line.split(",");
+    
+    let title = cols[0];
+    let url = cols[1];
+    
+    if (url && url.startsWith('"')) url = url.replace(/"/g, '');
+    if (title && title.startsWith('"')) title = title.replace(/"/g, '');
+    
+    if (cols.length >= 8 && cols[7] && cols[7].startsWith('http')) {
+       url = cols[7];
+       title = cols[3];
+    }
+
+    if (url && url.includes("reddit.com")) {
+      const subMatch = url.match(/\/r\/([^/]+)/);
+      const subreddit = subMatch ? subMatch[1] : "unknown";
+      postsToFilter.push({ title, url, subreddit });
+    }
+  }
+
+  if (postsToFilter.length === 0) {
+    toast("No valid Reddit URLs found in the pasted text.");
+    return;
+  }
+
+  $("filterProgressCard").style.display = "block";
+  $("filterResultsCard").style.display = "block";
+  $("filterResultsArea").innerHTML = "";
+  $("filterProgressBar").style.width = "0%";
+  $("filterAcceptedText").textContent = "0 Accepted";
+  filterAcceptedLeads = [];
+
+  let processed = 0;
+  let accepted = 0;
+  $("startFilterBtn").disabled = true;
+
+  for (const post of postsToFilter) {
+    $("filterCurrentPost").textContent = `Evaluating: ${post.title}`;
+    
+    try {
+      const res = await fetch("/api/filter-leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(post)
+      });
+      
+      if (res.ok) {
+        const evaluation = await res.json();
+        
+        if (evaluation.decision === "ACCEPT" && evaluation.score >= 4) {
+          accepted++;
+          $("filterAcceptedText").textContent = `${accepted} Accepted`;
+          filterAcceptedLeads.push({ post, evaluation });
+          
+          const div = document.createElement("div");
+          div.className = "lead-card";
+          div.innerHTML = `
+            <div class="lead-header">
+              <span class="lead-sub">r/${post.subreddit}</span>
+              <span style="background: var(--green); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; font-weight: bold;">Score: ${evaluation.score}</span>
+            </div>
+            <div class="lead-title"><a href="${post.url}" target="_blank">${post.title}</a></div>
+            <div style="font-size: 0.85em; color: var(--text-2); margin-top: 5px;">
+              <strong>Theme:</strong> ${evaluation.primary_theme} <br>
+              <strong>Pitch Feature:</strong> ${evaluation.feature_to_mention} <br>
+              <em style="color: var(--amber); margin-top: 5px; display: inline-block;">${evaluation.reason}</em>
+            </div>
+          `;
+          $("filterResultsArea").appendChild(div);
+        }
+      }
+    } catch (err) {
+      console.error("Filter failed for", post.url, err);
+    }
+
+    processed++;
+    $("filterProgressText").textContent = `${processed} / ${postsToFilter.length} Processed`;
+    $("filterProgressBar").style.width = `${(processed / postsToFilter.length) * 100}%`;
+  }
+  
+  $("filterCurrentPost").textContent = "Evaluation Complete!";
+  $("startFilterBtn").disabled = false;
+}
+
+function exportFilteredCsv() {
+  if (filterAcceptedLeads.length === 0) return;
+  
+  let csv = "Decision,Score,Theme,Feature,Country,Reason,Subreddit,Title,Link\n";
+  for (const item of filterAcceptedLeads) {
+    const ev = item.evaluation;
+    const p = item.post;
+    const cleanTitle = (p.title || "").replace(/"/g, '""');
+    const cleanReason = (ev.reason || "").replace(/"/g, '""');
+    
+    csv += `"ACCEPT",${ev.score},"${ev.primary_theme}","${ev.feature_to_mention}","${ev.country_context}","${cleanReason}","${p.subreddit}","${cleanTitle}","${p.url}"\n`;
+  }
+  
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `golden-leads-${today()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 if (document.readyState === "loading") {

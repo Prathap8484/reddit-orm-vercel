@@ -72,6 +72,7 @@
       <div class="nav-tabs">
         <button class="nav-tab active" data-tab="studio">Comment Studio</button>
         <button class="nav-tab" data-tab="leads">✦ Lead Finder</button>
+        <button class="nav-tab" data-tab="filter">✨ AI Filter Studio</button>
       </div>
 
       <!-- TAB: COMMENT STUDIO -->
@@ -225,6 +226,49 @@
           </div>
         </div>
       </div> <!-- /tab-leads -->
+
+      <!-- TAB: AI FILTER STUDIO -->
+      <div id="tab-filter" class="tab-content">
+        <section class="step-card">
+          <div class="step-num step-num-accent">✨</div>
+          <div class="step-body">
+            <h2 class="step-title">Paste Raw Data</h2>
+            <p class="step-desc">Paste the raw CSV data from the Lead Finder (or your clipboard) below to let Claude filter out the noise.</p>
+            <textarea id="filterInput" class="context-ta" rows="8" placeholder="Title	URL	Upvotes	Comments	Date&#10;..."></textarea>
+            <div class="batch-btns" style="margin-top: 15px;">
+              <button class="btn-generate" id="startFilterBtn">✦ Start AI Filter</button>
+            </div>
+          </div>
+        </section>
+        
+        <section class="step-card" id="filterProgressCard" style="display: none;">
+          <div class="step-num">⚙</div>
+          <div class="step-body">
+            <h2 class="step-title">Processing...</h2>
+            <div style="display:flex; justify-content: space-between; margin-bottom: 5px;">
+              <span id="filterProgressText" style="color: var(--text-2);">0 / 0 Processed</span>
+              <span id="filterAcceptedText" style="color: var(--green); font-weight: bold;">0 Accepted</span>
+            </div>
+            <div style="width: 100%; background: var(--bg-1); height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
+              <div id="filterProgressBar" style="height: 100%; width: 0%; background: var(--blue); transition: width 0.3s;"></div>
+            </div>
+            <div id="filterCurrentPost" style="margin-top: 10px; font-size: 0.9em; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+          </div>
+        </section>
+
+        <section class="step-card" id="filterResultsCard" style="display: none;">
+          <div class="step-num">★</div>
+          <div class="step-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h2 class="step-title">Golden Leads (Score 4 & 5)</h2>
+              <button class="btn-primary" id="exportFilteredBtn" style="background-color: var(--green); border-color: var(--green);">📥 Export Golden CSV</button>
+            </div>
+            <div class="lead-results-area" id="filterResultsArea" style="max-height: 500px; overflow-y: auto;">
+              <!-- Results will be injected here -->
+            </div>
+          </div>
+        </section>
+      </div> <!-- /tab-filter -->
 
     </main>
 
