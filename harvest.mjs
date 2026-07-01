@@ -58,8 +58,8 @@ const SEARCH_QUERIES = [
   `galaxy a57 ${intent}`, `samsung a57 ${intent}`, `a57 5g ${intent}`,
 ];
 
-const MAX_SEARCH_PAGES = 20; // up to ~500 results/query (expanded for stricter filters)
-const ENRICH_CAP = 500; // max per-post score lookups (bounds runtime)
+const MAX_SEARCH_PAGES = 40; // up to ~1000 results/query (expanded for strict 80-100 lead goal)
+const ENRICH_CAP = 1500; // max per-post score lookups (bounds runtime)
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
@@ -67,18 +67,19 @@ const UA =
 
 const REQUEST_DELAY_MS = 1200; // polite gap between requests
 const ENRICH_DELAY_MS = 800; // lighter gap for the many score lookups
-const MAX_PAGES_PER_SUB = 10; // safety cap (25 posts/page)
+const MAX_PAGES_PER_SUB = 20; // safety cap (25 posts/page)
 
 // Per-phone target you want to hit (for the summary readout).
-const TARGET_PER_PHONE = 100;
+// To get 80-100 approved leads at a ~20% pass rate, we need ~500 raw leads.
+const TARGET_PER_PHONE = 500;
 
 // ── Args ─────────────────────────────────────────────────────────────
 
 function parseArgs() {
   const a = process.argv.slice(2);
-  const out = { hours: 30 * 24, out: "." }; // default: last 30 days
+  const out = { hours: 90 * 24, out: "." }; // default: last 90 days (3 months)
   for (let i = 0; i < a.length; i++) {
-    if (a[i] === "--days") out.hours = (Number(a[++i]) || 30) * 24;
+    if (a[i] === "--days") out.hours = (Number(a[++i]) || 90) * 24;
     else if (a[i] === "--hours") out.hours = Number(a[++i]) || out.hours;
     else if (a[i] === "--out") out.out = a[++i] || out.out;
   }
@@ -90,7 +91,7 @@ function timeFilter(hours) {
   if (hours <= 24) return "day";
   if (hours <= 7 * 24) return "week";
   if (hours <= 31 * 24) return "month";
-  return "year";
+  return "year"; // Default to year since we need 90 days
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
