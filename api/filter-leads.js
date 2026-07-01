@@ -37,46 +37,44 @@ export default async function handler(req, res) {
       
       console.log(`Reddit RSS Status: ${redditRes.status}`);
       if (!redditRes.ok) {
-        const redditErr = await redditRes.text();
-        console.error(`Reddit fetch failed: ${redditRes.status}`, redditErr);
-        return res.status(redditRes.status).json({ error: 'Failed to fetch Reddit RSS page', details: redditErr });
-      }
-
-      const xml = await redditRes.text();
-      
-      // We are looking for the entry that matches our post
-      const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
-      let matchedEntry = "";
-      let match;
-      
-      // Extract post ID from original URL to ensure we match the right post in search results
-      const urlParts = url.split('/');
-      const postIdIndex = urlParts.indexOf('comments') + 1;
-      const postId = postIdIndex > 0 && postIdIndex < urlParts.length ? urlParts[postIdIndex] : "";
-
-      while ((match = entryRegex.exec(xml)) !== null) {
-        const entryBlock = match[1];
-        if (postId && entryBlock.includes(postId)) {
-           matchedEntry = entryBlock;
-           break;
-        }
-      }
-      
-      // If we couldn't match by ID, just take the first entry since we searched by exact title
-      if (!matchedEntry) {
-         const firstMatch = /<entry>([\s\S]*?)<\/entry>/.exec(xml);
-         if (firstMatch) matchedEntry = firstMatch[1];
-      }
-      
-      if (matchedEntry) {
-        const contentMatch = matchedEntry.match(/<content type="html">([\s\S]*?)<\/content>/);
-        if (contentMatch) {
-          let text = contentMatch[1].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
-          selftext = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-        }
-        console.log("Successfully extracted selftext from search.rss fallback");
+        console.error(`Reddit fetch failed with ${redditRes.status}. Proceeding to evaluate with TITLE ONLY.`);
       } else {
-        console.log("Could not find matching post in search.rss fallback");
+        const xml = await redditRes.text();
+        
+        // We are looking for the entry that matches our post
+        const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+        let matchedEntry = "";
+        let match;
+        
+        // Extract post ID from original URL to ensure we match the right post in search results
+        const urlParts = url.split('/');
+        const postIdIndex = urlParts.indexOf('comments') + 1;
+        const postId = postIdIndex > 0 && postIdIndex < urlParts.length ? urlParts[postIdIndex] : "";
+
+        while ((match = entryRegex.exec(xml)) !== null) {
+          const entryBlock = match[1];
+          if (postId && entryBlock.includes(postId)) {
+             matchedEntry = entryBlock;
+             break;
+          }
+        }
+        
+        // If we couldn't match by ID, just take the first entry since we searched by exact title
+        if (!matchedEntry) {
+           const firstMatch = /<entry>([\s\S]*?)<\/entry>/.exec(xml);
+           if (firstMatch) matchedEntry = firstMatch[1];
+        }
+        
+        if (matchedEntry) {
+          const contentMatch = matchedEntry.match(/<content type="html">([\s\S]*?)<\/content>/);
+          if (contentMatch) {
+            let text = contentMatch[1].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+            selftext = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+          }
+          console.log("Successfully extracted selftext from search.rss fallback");
+        } else {
+          console.log("Could not find matching post in search.rss fallback. Proceeding with title only.");
+        }
       }
     } else {
       console.log("Using cached selftext from client. Bypassing Reddit fetch.");
