@@ -35,6 +35,11 @@ export default async function handler(req, res) {
       let permalink = fullUrl.replace("https://www.reddit.com", "");
       if (!permalink.startsWith("/")) permalink = "/" + permalink;
       
+      // Strict filter: If it's not a post (e.g., a subreddit link), reject it
+      if (!permalink.includes("/comments/")) {
+        return null;
+      }
+      
       const subreddit = categoryMatch ? categoryMatch[1] : "";
       
       const updatedStr = updatedMatch ? updatedMatch[1] : new Date().toISOString();
@@ -59,7 +64,7 @@ export default async function handler(req, res) {
           author: authorMatch ? authorMatch[1] : "unknown"
         }
       };
-    });
+    }).filter(Boolean);
 
     // Return exact same JSON structure that app.js expects from Reddit's search.json
     return res.status(200).json({
