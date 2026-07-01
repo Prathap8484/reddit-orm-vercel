@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Samsung ORM — Comment Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ══ HEADER ══ -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-logo">S</div>
+      <div>
+        <div class="hdr-title">Samsung ORM</div>
+        <div class="hdr-sub">Comment Generator</div>
+      </div>
+    </div>
+    <div class="hdr-stats">
+      <div class="stat-pill"><span id="metricPosted">0</span> posted</div>
+      <div class="stat-pill clr-amber"><span id="metricReview">0</span> to review</div>
+      <div class="stat-pill clr-blue"><span id="metricDrafted">0</span> drafted</div>
+      <div class="stat-pill" id="todayPill">0/<span id="metricDailyTarget">10</span> today</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="hdr-btn" id="exportCsvBtn">Export CSV</button>
+      <button class="hdr-btn" id="exportJsonBtn">Export JSON</button>
+      <button class="hdr-btn hdr-btn-icon" id="settingsToggle" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ══ MAIN LAYOUT ══ -->
+  <div class="layout">
+
+    <!-- ── LEFT: HISTORY PANEL ── -->
+    <aside class="history-panel">
+      <div class="hp-top">
+        <span class="hp-title">History</span>
+        <button class="btn-new" id="newBtn">+ New</button>
+      </div>
+
+      <input type="text" id="queueSearch" class="hp-search" placeholder="Search…">
+
+      <div class="hp-filters">
+        <button class="fchip active" data-filter="All">All</button>
+        <button class="fchip" data-filter="Drafted">Draft</button>
+        <button class="fchip" data-filter="Needs review">Review</button>
+        <button class="fchip" data-filter="Posted">Posted</button>
+      </div>
+
+      <div class="hp-platform-filter">
+        <select id="platformFilter" class="hp-pf-select">
+          <option value="All">All platforms</option>
+          <option value="reddit">Reddit</option>
+          <option value="quora">Quora</option>
+        </select>
+      </div>
+
+      <div id="queueList" class="hp-list"></div>
+    </aside>
+
+    <!-- ── CENTER: WORK AREA ── -->
+    <main class="work-area">
+
+      <!-- Navigation Tabs -->
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="studio">Comment Studio</button>
+        <button class="nav-tab" data-tab="leads">✦ Lead Finder</button>
+      </div>
+
+      <!-- TAB: COMMENT STUDIO -->
+      <div id="tab-studio" class="tab-content active">
+
+      <!-- STEP 1: CHOOSE PLATFORM + URL -->
+      <section class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h2 class="step-title">Where is the post?</h2>
+          <p class="step-desc">Pick the platform, then paste the URL. For Samsung Members &amp; Twitter — skip URL and paste the text below.</p>
+
+          <div class="platform-grid">
+            <label class="plat-btn">
+              <input type="radio" name="platform" value="reddit" checked>
+              <span class="plat-icon">👾</span>
+              <span class="plat-name">Reddit</span>
+            </label>
+            <label class="plat-btn">
+              <input type="radio" name="platform" value="quora">
+              <span class="plat-icon">📝</span>
+              <span class="plat-name">Quora</span>
+            </label>
+          </div>
+
+          <div class="url-row">
+            <input type="url" id="urlInput" class="url-input" placeholder="Paste URL here…">
+            <button class="btn-fetch" id="fetchBtn">Fetch</button>
+          </div>
+          <div id="fetchError" class="msg-error" style="display:none;"></div>
+          <div id="fetchLoading" class="msg-loading" style="display:none;">
+            <span class="spin"></span> Fetching…
+          </div>
+          <div id="platformHint" class="msg-hint" style="display:none;"></div>
+        </div>
+      </section>
+
+      <!-- STEP 2: POST CONTEXT -->
+      <section class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h2 class="step-title">What's the post about?</h2>
+          <p class="step-desc">Auto-filled when you Fetch. Or paste the post text / thread / tweet manually.</p>
+
+          <textarea id="contextInput" class="context-ta" rows="5" placeholder="Paste the post / thread / tweet text here…"></textarea>
+
+          <div class="meta-row">
+            <div class="meta-chip" id="platformChip">Reddit</div>
+            <select id="topicInput" class="meta-sel"></select>
+            <select id="statusInput" class="meta-sel"></select>
+            <input type="text" id="ownerInput" class="meta-inp" placeholder="Your name">
+          </div>
+
+          <!-- hidden fields kept for data model -->
+          <div style="display:none;">
+            <div id="subredditInput">-</div>
+            <div id="deviceBadge">-</div>
+            <select id="angleInput"></select>
+            <select id="priorityInput"></select>
+            <input type="hidden" id="platformSelect">
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3: GENERATE -->
+      <section class="step-card step-card-accent">
+        <div class="step-num step-num-accent">3</div>
+        <div class="step-body">
+          <div class="gen-top">
+            <div>
+              <h2 class="step-title">Get Comments</h2>
+              <p class="step-desc">AI writes 3 different comment styles. Pick the best one to post.</p>
+            </div>
+            <div class="gen-controls">
+              <label class="reply-toggle">
+                <input type="checkbox" id="replyModeCheck"> Replying to a comment
+              </label>
+              <button class="btn-generate" id="generateCommentsBtn">✦ Generate Comments</button>
+            </div>
+          </div>
+
+          <div id="parentCommentWrap" style="display:none;margin-bottom:16px;">
+            <textarea id="parentCommentInput" class="context-ta" rows="2" placeholder="Paste the comment you're replying to…"></textarea>
+          </div>
+
+          <div id="irrelevantBanner" class="irrelevant-banner" style="display:none;">
+            ⚠ This post isn't relevant to Samsung A37/A57 — no comments generated.
+          </div>
+
+          <div id="commentStudio" class="comment-studio">
+            <div class="empty-state">
+              <div class="empty-icon">✦</div>
+              <p>Fetch a post, then tap Generate.</p>
+            </div>
+          </div>
+
+          <div class="save-row">
+            <button class="btn-save" id="saveBtn">Save to History</button>
+            <span class="save-note">Saves all 3 drafts so you can come back later.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Batch area -->
+      <section class="step-card">
+        <div class="step-num">+</div>
+        <div class="step-body">
+          <h2 class="step-title">Batch Import (Reddit)</h2>
+          <p class="step-desc">Paste multiple Reddit URLs, one per line.</p>
+          <textarea id="batchInput" class="context-ta" rows="3" placeholder="https://reddit.com/r/…&#10;https://reddit.com/r/…"></textarea>
+          <div class="batch-btns">
+            <button class="btn-secondary" id="batchScrapeBtn">Fetch + Generate All</button>
+            <button class="btn-ghost-sm" id="batchAddBtn">Add Only</button>
+          </div>
+          <div id="batchSummary" class="msg-hint"></div>
+          <div id="batchResults"></div>
+        </div>
+      </section>
+
+      <div id="batchCommentsReview" class="batch-review-area"></div>
+
+      </div> <!-- /tab-studio -->
+
+      <!-- TAB: LEAD FINDER -->
+      <div id="tab-leads" class="tab-content">
+        <div class="lead-controls">
+          <div class="lead-quick-btns">
+            <button class="btn-secondary" id="searchS26Btn">Search S26 (Last 30 Days)</button>
+            <button class="btn-secondary" id="searchA37Btn">Search A37/A57 (Last 30 Days)</button>
+            <button class="btn-primary" id="copyToSheetsBtn" style="display:none; margin-left: auto; background-color: var(--green); border-color: var(--green);">📋 Copy to Sheets</button>
+          </div>
+          <div class="lead-custom-search">
+            <input type="text" id="leadSearchInput" class="url-input" placeholder="Or type a custom Reddit search query...">
+            <button class="btn-fetch" id="leadSearchBtn">Search</button>
+          </div>
+          <div style="margin-top: 8px; text-align: left; padding-left: 5px;">
+            <label style="color: var(--text-2); font-size: 0.9em; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="checkbox" id="intentFilterCheckbox" checked>
+              Filter for buying intent & comparisons
+            </label>
+          </div>
+          <div id="leadLoading" class="msg-loading" style="display:none; margin-top: 10px;">
+            <span class="spin"></span> Searching Reddit...
+          </div>
+          <div id="leadError" class="msg-error" style="display:none; margin-top: 10px;"></div>
+        </div>
+        <div class="lead-results-area" id="leadResults">
+          <div class="empty-state" style="margin-top: 40px;">
+            <div class="empty-icon">🔍</div>
+            <p>Click a search button above to find leads with buying intent.</p>
+          </div>
+        </div>
+      </div> <!-- /tab-leads -->
+
+    </main>
+
+    <!-- ── RIGHT: QUALITY PANEL ── -->
+    <aside class="quality-panel">
+      <div class="qp-card">
+        <h3 class="qp-title">Comment Quality</h3>
+        <div id="qaSummary" class="qa-badge">No comment selected</div>
+        <div id="qaList" class="qa-list"></div>
+      </div>
+
+      <div class="qp-card">
+        <h3 class="qp-title">Quick Templates</h3>
+        <div id="templateList" class="template-list"></div>
+      </div>
+
+      <div class="qp-card">
+        <h3 class="qp-title">Angle Coverage</h3>
+        <div id="angleBars" class="angle-bars"></div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ══ TRACKER ══ -->
+  <div class="tracker-wrap">
+    <div class="tracker-card">
+      <div class="tracker-hdr">
+        <h2>All Posts <span id="trackerCount" class="tracker-badge">0</span></h2>
+        <div class="tracker-hdr-right">
+          <button class="hdr-btn" id="nextUnreviewedBtn">Next to Review</button>
+          <input type="text" id="searchInput" class="hp-search" placeholder="Search tracker…" style="width:200px;">
+        </div>
+      </div>
+      <div class="tracker-scroller">
+        <table class="tracker-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Platform</th>
+              <th>Post</th>
+              <th>Topic</th>
+              <th>Owner</th>
+              <th>Status</th>
+              <th>Comments</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="trackerBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS MODAL ══ -->
+  <div class="modal-overlay" id="settingsOverlay" style="display:none;"></div>
+  <div class="modal-panel" id="settingsPanel" style="display:none;">
+    <div class="modal-hdr">
+      <h2>Settings</h2>
+      <button class="modal-close" id="settingsCloseBtn">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="flbl">Daily Target</label>
+      <input type="number" id="dailyTargetInput" min="1" max="100" value="10" class="meta-inp">
+    </div>
+    <div class="form-group">
+      <label class="flbl">Your Name</label>
+      <input type="text" id="userNameInput" placeholder="Name or initials" class="meta-inp">
+    </div>
+    <div class="form-group">
+      <label class="flbl">Import JSON</label>
+      <label class="import-label">Choose File<input id="importJsonInput" type="file" accept=".json"></label>
+    </div>
+    <button class="btn-danger" id="clearAllBtn">Delete All Posts</button>
+  </div>
+
+  <!-- ══ TOAST ══ -->
+  <div id="toast" class="toast"></div>
+
+  <!-- hidden inputs that app.js reads for the data model -->
+  <form id="workForm" style="display:none;">
+  </form>
+
+  <script src="app.js"></script>
+</body>
+</html>
