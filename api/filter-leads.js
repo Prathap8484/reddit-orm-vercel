@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Missing ANTHROPIC_API_KEY' });
     }
 
-    const { url, title, subreddit } = req.body;
+    const { url, title, subreddit, selftext: clientSelfText } = req.body;
     if (!url) {
       console.error("Missing URL in req.body", req.body);
       return res.status(400).json({ error: 'Missing URL' });
@@ -20,36 +20,43 @@ export default async function handler(req, res) {
 
     console.log(`Processing URL: ${url}`);
 
-    // 1. Fetch Reddit RSS to bypass Datacenter IP blocking
-    let rssUrl = url.replace(/\/$/, '') + '.rss';
-    
-    console.log(`Fetching RSS: ${rssUrl}`);
-    const redditRes = await fetch(rssUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" }
-    });
-    
-    console.log(`Reddit RSS Status: ${redditRes.status}`);
-    if (!redditRes.ok) {
-      const redditErr = await redditRes.text();
-      console.error(`Reddit fetch failed: ${redditRes.status}`, redditErr);
-      return res.status(redditRes.status).json({ error: 'Failed to fetch Reddit RSS page', details: redditErr });
-    }
+    let selftext = clientSelfText || "";
+    let topComments = "";
 
-    const xml = await redditRes.text();
-    
-    // Extract contents from RSS
-    const entryRegex = /<content type="html">([\s\S]*?)<\/content>/g;
-    const entries = [];
-    let match;
-    while ((match = entryRegex.exec(xml)) !== null) {
-      let text = match[1].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
-      text = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      entries.push(text);
-    }
+    // 1. Fetch Reddit RSS ONLY if client did not provide selftext
+    if (!selftext) {
+      let rssUrl = url.replace(/\/$/, '') + '.rss';
+      
+      console.log(`Fetching RSS: ${rssUrl}`);
+      const redditRes = await fetch(rssUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" }
+      });
+      
+      console.log(`Reddit RSS Status: ${redditRes.status}`);
+      if (!redditRes.ok) {
+        const redditErr = await redditRes.text();
+        console.error(`Reddit fetch failed: ${redditRes.status}`, redditErr);
+        return res.status(redditRes.status).json({ error: 'Failed to fetch Reddit RSS page', details: redditErr });
+      }
 
-    console.log(`Parsed ${entries.length} RSS entries`);
-    const selftext = entries[0] || "";
-    const topComments = entries.slice(1, 4).join("\n---\n");
+      const xml = await redditRes.text();
+      
+      // Extract contents from RSS
+      const entryRegex = /<content type="html">([\s\S]*?)<\/content>/g;
+      const entries = [];
+      let match;
+      while ((match = entryRegex.exec(xml)) !== null) {
+        let text = match[1].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+        text = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+        entries.push(text);
+      }
+
+      console.log(`Parsed ${entries.length} RSS entries`);
+      selftext = entries[0] || "";
+      topComments = entries.slice(1, 4).join("\n---\n");
+    } else {
+      console.log("Using cached selftext from client. Bypassing Reddit fetch.");
+    }
 
     const inputData = `[POST TO EVALUATE]
 Subreddit: r/${subreddit || "unknown"}

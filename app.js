@@ -2192,6 +2192,8 @@ async function startAIFilter() {
   const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
   const postsToFilter = [];
   
+  const cachedLeads = JSON.parse(localStorage.getItem('reddit_cached_leads') || '[]');
+
   for (const line of lines) {
     if (line.toLowerCase().startsWith("title")) continue;
     
@@ -2212,7 +2214,14 @@ async function startAIFilter() {
     if (url && url.includes("reddit.com")) {
       const subMatch = url.match(/\/r\/([^/]+)/);
       const subreddit = subMatch ? subMatch[1] : "unknown";
-      postsToFilter.push({ title, url, subreddit });
+      
+      let selftext = "";
+      const matchedCache = cachedLeads.find(c => c.url === url || url.includes(c.url) || c.url.includes(url));
+      if (matchedCache) {
+        selftext = matchedCache.selftext;
+      }
+      
+      postsToFilter.push({ title, url, subreddit, selftext });
     }
   }
 
