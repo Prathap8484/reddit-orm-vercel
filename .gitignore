@@ -22,4 +22,8 @@ yarn-error.log
 .DS_Store
 Thumbs.db
 
+# Dated harvest snapshots (master.csv + filtered_leads.csv are the tracked data)
+harvest-*.csv
+reports/harvest.log
+
 .vercel

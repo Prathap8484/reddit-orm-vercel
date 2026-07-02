@@ -139,8 +139,13 @@ async function run() {
   const csvText = fs.readFileSync(IN_FILE, 'utf8');
   const rows = parseCsv(csvText);
 
+  // Skip posts already evaluated in a previous run so daily refreshes only
+  // score NEW harvested leads (bounds API cost and avoids duplicate rows).
+  const alreadyScored = fs.existsSync(OUT_FILE) ? fs.readFileSync(OUT_FILE, "utf8") : "";
+
   let totalProcessed = 0;
   let totalAccepted = 0;
+  let totalSkipped = 0;
 
   for (const row of rows) {
     const subreddit = row.subreddit ? row.subreddit.replace("r/", "") : "unknown";
@@ -148,6 +153,7 @@ async function run() {
     const link = row.link || "";
 
     if (!link) continue;
+    if (alreadyScored.includes(link)) { totalSkipped++; continue; }
 
     console.log(`\n[Processing] ${title.substring(0,50)}...`);
     
@@ -181,7 +187,7 @@ async function run() {
     await new Promise(r => setTimeout(r, 1500));
   }
 
-  console.log(`\nPipeline Complete! Processed: ${totalProcessed} | Accepted: ${totalAccepted}`);
+  console.log(`\nPipeline Complete! Processed: ${totalProcessed} | Accepted: ${totalAccepted} | Skipped (already scored): ${totalSkipped}`);
   console.log(`Results saved to ${OUT_FILE}`);
 }
 
