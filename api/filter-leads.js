@@ -135,7 +135,7 @@ Return strictly valid JSON with no markdown formatting. Schema:
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-3-5-sonnet-20240620",
+        model: "claude-haiku-4-5",
         max_tokens: 300,
         system: RUBRIC_PROMPT,
         temperature: 0.1,

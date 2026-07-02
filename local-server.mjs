@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import fetchReddit from "./api/reddit.js";
 import generateComments from "./api/generate-comments.js";
 import fetchRedditSearch from "./api/reddit-search.js";
+import leads from "./api/leads.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 4180);
@@ -89,6 +90,7 @@ const apiRoutes = {
   "/api/reddit": fetchReddit,
   "/api/generate-comments": generateComments,
   "/api/reddit-search": fetchRedditSearch,
+  "/api/leads": leads,
 };
 
 // ── Server ───────────────────────────────────────────────────────────

@@ -949,9 +949,15 @@ body {
   box-shadow: 0 8px 30px rgba(139, 92, 246, 0.15);
   border-color: var(--bdr-glow);
 }
-.lead-card-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.lead-card-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
 .lead-subreddit { font-weight: 600; color: var(--blue); font-size: 12px; }
 .lead-author { color: var(--tx3); font-size: 12px; }
+.lead-comments { color: var(--tx2); font-size: 12px; }
+.lead-date { color: var(--tx3); font-size: 12px; margin-left: auto; }
+.lead-priority { font-weight: 700; font-size: 12px; padding: 2px 8px; border-radius: 999px; color: #fff; }
+.lead-priority-hot { background: #e5484d; }
+.lead-priority-warm { background: #f5a524; }
+.lead-priority-cold { background: #6b7280; }
 .lead-title { font-size: 14px; font-weight: 600; color: var(--tx1); margin-bottom: 6px; line-height: 1.3; }
 .lead-body { font-size: 13px; color: var(--tx2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 12px; }
 .lead-actions { display: flex; gap: 8px; }

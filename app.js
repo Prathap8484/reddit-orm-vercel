@@ -2104,10 +2104,17 @@ function init() {
         const titleText = (p.title || "").substring(0, 150);
         const bodyText = (p.selftext || "").substring(0, 200) + (p.selftext && p.selftext.length > 200 ? "..." : "");
         
+        const commentsBadge = (p.num_comments === null || p.num_comments === undefined)
+          ? ""
+          : `<span class="lead-comments">💬 ${p.num_comments}</span>`;
+        const dateStr = p.created_utc ? new Date(p.created_utc * 1000).toLocaleDateString() : "";
+
         card.innerHTML = `
           <div class="lead-card-header">
             <span class="lead-subreddit">r/${p.subreddit}</span>
             <span class="lead-author">u/${p.author}</span>
+            ${commentsBadge}
+            ${dateStr ? `<span class="lead-date">${dateStr}</span>` : ""}
           </div>
           <div class="lead-title"><a href="${permalink}" target="_blank" style="color: inherit; text-decoration: none;">${titleText}</a></div>
           <div class="lead-body">${bodyText}</div>
@@ -2150,6 +2157,90 @@ function init() {
     }
   };
 
+  const fetchPriorityLeads = async () => {
+    $("leadLoading").style.display = "block";
+    $("leadError").style.display = "none";
+    $("leadResults").innerHTML = "";
+    $("copyToSheetsBtn").style.display = "none";
+    try {
+      const passcode = localStorage.getItem("appPasscode") || "";
+      const res = await fetch(`${apiBase}/api/leads`, { headers: { "x-app-password": passcode } });
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      const data = await res.json();
+      const leads = data.leads || [];
+      if (leads.length === 0) {
+        $("leadResults").innerHTML = `<div class="empty-state" style="margin-top: 40px;"><div class="empty-icon">📭</div><p>${data.message || "No harvested leads yet. Run the harvester locally first."}</p></div>`;
+        return;
+      }
+
+      const summary = document.createElement("div");
+      summary.className = "msg-hint";
+      summary.style.marginBottom = "12px";
+      summary.textContent = `Showing ${leads.length} harvested leads, ranked by priority` +
+        (data.counts && data.counts.scored ? ` (${data.counts.scored} AI-scored)` : "") + ".";
+      $("leadResults").appendChild(summary);
+
+      leads.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "lead-card";
+
+        const tier = p.priorityScore >= 70 ? "hot" : p.priorityScore >= 45 ? "warm" : "cold";
+        const scoreBadge = p.aiScore != null ? `<span class="lead-comments">Intent ${p.aiScore}/5</span>` : "";
+        const commentsBadge = (p.comments === null || p.comments === undefined) ? "" : `<span class="lead-comments">💬 ${p.comments}</span>`;
+        const upvotesBadge = (p.upvotes === null || p.upvotes === undefined) ? "" : `<span class="lead-comments">▲ ${p.upvotes}</span>`;
+
+        card.innerHTML = `
+          <div class="lead-card-header">
+            <span class="lead-priority lead-priority-${tier}">★ ${p.priorityScore}</span>
+            <span class="lead-subreddit">r/${p.subreddit}</span>
+            ${p.phone ? `<span class="lead-comments">${p.phone}</span>` : ""}
+            ${scoreBadge}
+            ${commentsBadge}
+            ${upvotesBadge}
+            ${p.date ? `<span class="lead-date">${p.date}</span>` : ""}
+          </div>
+          <div class="lead-title"><a href="${p.link}" target="_blank" style="color: inherit; text-decoration: none;">${(p.title || "").substring(0, 150)}</a></div>
+          ${p.reason ? `<div class="lead-body">${p.reason}</div>` : ""}
+          <div class="lead-actions">
+            <button class="hdr-btn load-lead-btn" data-url="${p.link}" style="color: var(--blue); border-color: var(--blue);">Load Post</button>
+            <button class="hdr-btn add-batch-btn" data-url="${p.link}">Add to Batch</button>
+          </div>
+        `;
+
+        card.querySelector(".load-lead-btn").addEventListener("click", (e) => {
+           $("urlInput").value = e.target.dataset.url;
+           const redditRadio = document.querySelector('input[name="platform"][value="reddit"]');
+           if (redditRadio) redditRadio.checked = true;
+           setPlatform("reddit");
+           switchTab("studio");
+           fetchContext();
+           toast("Post loaded into generator.");
+           window.scrollTo(0, 0);
+        });
+        card.querySelector(".add-batch-btn").addEventListener("click", (e) => {
+           const batchArea = $("batchInput");
+           const val = batchArea.value.trim();
+           const url = e.target.dataset.url;
+           if (!val.includes(url)) {
+             batchArea.value = val ? val + "\\n" + url : url;
+             toast("Added to Batch Import.");
+             e.target.innerText = "Added ✓";
+             e.target.disabled = true;
+           }
+        });
+
+        $("leadResults").appendChild(card);
+      });
+    } catch (err) {
+      $("leadError").style.display = "block";
+      $("leadError").textContent = err.message;
+    } finally {
+      $("leadLoading").style.display = "none";
+    }
+  };
+
+  $("priorityDashBtn").addEventListener("click", fetchPriorityLeads);
+
   $("searchS26Btn").addEventListener("click", () => {
     $("leadSearchInput").value = 'galaxy s26';
     fetchLeads($("leadSearchInput").value);
@@ -2173,8 +2264,9 @@ function init() {
       const title = (p.title || "").replace(/\t/g, " ").replace(/\n/g, " ");
       const url = `https://www.reddit.com${p.permalink}`;
       const commentCol = ""; // Empty column C
-      const upvotes = p.ups || 0;
-      const numComments = p.num_comments || 0;
+      // Show blank (not a misleading 0) when Reddit didn't expose the number.
+      const upvotes = (p.ups === null || p.ups === undefined) ? "" : p.ups;
+      const numComments = (p.num_comments === null || p.num_comments === undefined) ? "" : p.num_comments;
       
       // Convert Reddit UTC timestamp to local date string
       const date = new Date(p.created_utc * 1000).toLocaleDateString();
