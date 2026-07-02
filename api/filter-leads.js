@@ -95,25 +95,36 @@ ${topComments}
     // 2. Evaluate with Claude
     const RUBRIC_PROMPT = `You are an elite Reddit ORM (Online Reputation Management) Filtering Engine for the Samsung Galaxy A37 and A57.
 You will receive the Title, Body, and Top Comments of a Reddit post.
-Your job is to evaluate this post against a strict 15-point rubric and output a JSON evaluation.
+Your job is to evaluate this post against a strict framework and output a JSON evaluation.
 
 RUBRIC:
-1. Primary Filter (Must Have): Clear buying/upgrade intent (e.g., "Which phone should I buy?", "Upgrade suggestions", "Pixel vs Samsung").
-2. Budget Filter: Reject immediately if budget is explicitly under $350 USD (or equivalent like ₹30k INR, 15k PHP) or over $600 USD (or equivalent). Be mindful of regional currencies like PHP, EUR, and USD before rejecting based on a number.
-3. Country Filter: Identify if India, US, Europe, or Unknown.
-4. Topic Filter: Accept ONLY Buying Advice, Upgrade Advice, Comparison, Battery, Camera, Performance, Display, Longevity, Durability, AI Features.
-5. Theme Matching: Identify exactly ONE dominant theme (e.g., Camera).
-6. Natural Opportunity: Samsung A37/A57 must naturally fit the OP's requirements.
-7. Conversation Filter: Check comments. Reject if OP explicitly hates Samsung or One UI, or already bought a phone.
-8. Subreddit Filter: Reject repair, rooting, tech support, developer discussions.
-9. Reject Immediately: Broken screens, bugs, flashing ROMs, memes, flex posts, shipping updates, no buying intent.
+1. Buyer Intent (Highest Priority): Find posts where the OP is actively looking to purchase or upgrade (e.g., "Which phone should I buy?", "Upgrade from ___", "Best camera phone").
+2. Budget Filter: 
+   - Primary Target Budget (India): Galaxy A37 (₹35,000-₹45,000, Ideal ₹38k-₹42k). Galaxy A57 (₹45,000-₹60,000, Ideal ₹50k-₹57k).
+   - International: Look for Mid-range Android, Premium mid-range, Upper mid-range, Around $500-$700, Around €450-€650. Never mention INR in international discussions.
+3. Budget Rejection Rules:
+   - Reject immediately if budget is explicitly under ₹30k INR (or equivalent like under $350 USD / 15k PHP).
+   - Reject immediately if budget is explicitly over ₹60k INR (or equivalent like over $700 USD / 30k PHP) unless OP is also considering mid-range alternatives.
+   - Be extremely mindful of regional currencies like PHP, EUR, and USD before rejecting based on a raw number.
+4. Phones That Naturally Allow A37/A57 Recommendations: Samsung (A35/A36/A55/A56/A54/A53/S21FE/S23FE/M56/F56), Google (Pixel 8a/9a/8/9), Nothing (Phone 2/2a/3a/3a Pro), OnePlus (Nord 4/CE 5/CE 4/5/13R/13s), Motorola (Edge 50/50 Fusion/60/60 Pro/60 Fusion), Xiaomi/Poco (Note 14 Pro/Pro+, 14 Civi, Poco F7/F7 Pro/X7 Pro/X7), Vivo (V50/V60/T4 Ultra), Oppo (Reno 13/14/13 Pro/14 Pro), Realme (GT 6T/7/7T/14 Pro+/15 Pro), Honor (400/400 Pro/Magic Lite).
+5. Upgrade Posts: Excellent opportunities when OP says "I'm using..." Redmi Note 10-13, Poco X5/X6/F5, Samsung A52-A55, M52-M55, OnePlus Nord series, Pixel 6a-8a, Moto Edge 30-40, Vivo V27-V30, Oppo Reno 10, Realme GT Master.
+6. Comparison Posts: Excellent when comparing Samsung vs Pixel, OnePlus, Nothing, Motorola, Xiaomi, Poco, Vivo, Oppo, Honor, Realme.
+7. Feature-Based Searches: Battery (Best battery phone, 2-day battery), Camera (Best camera, selfie, video), Gaming (PUBG, BGMI, COD, Genshin), Display (AMOLED, 120Hz, outdoor), Software (Clean Android, long support, One UI), Durability (IP68, Gorilla Glass), AI (Circle to Search, Object Eraser).
+8. Reject These Posts: Do not select posts about broken screens, repairs, motherboard issues, charging port repair, warranty claims, bootloader unlocking, custom ROMs, rooting, camera sample galleries, wallpaper showcases, home screen setups, delivery/unboxing photos, cases and accessories only, software bugs with no buying intent, meme posts, off-topic discussions.
+9. Final Eligibility Checklist:
+   - Clear purchase or upgrade intent.
+   - Budget aligns with Galaxy A37 or Galaxy A57.
+   - Competitor phones are in the same segment.
+   - Samsung can be recommended naturally.
+   - Only one primary feature/theme is needed.
+   - Fits the subreddit's tone, not a repair/bug/accessory/showcase thread.
 10. Feature Mapping: Based on the theme, pick the exact feature to push (e.g., Gaming -> vapor chamber; Camera -> 50MP/OIS; Battery -> 5000mAh; Longevity -> 6 OS upgrades).
 11. Score (1-5):
-    5: Perfect buyer intent, budget matches, Samsung fits, active comparison.
-    4: Great upgrade advice, battery/camera focus.
-    3: General Android talk, vague comparisons.
-    2: Existing owner accessory talk.
-    1: Repair, bugs, memes (MUST REJECT).
+    5: Perfect buyer intent, budget matches, direct phone comparison, upgrade advice.
+    4: Long-term phone recommendations, battery/camera/display focus, mid-range Android recommendation.
+    3: General Android discussions where Samsung fits naturally.
+    2: Existing owner experiences.
+    1: Repair, accessories, bugs, memes (MUST REJECT).
 
 OUTPUT FORMAT:
 Return strictly valid JSON with no markdown formatting. Schema:
