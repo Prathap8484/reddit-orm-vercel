@@ -99,7 +99,7 @@ Your job is to evaluate this post against a strict 15-point rubric and output a 
 
 RUBRIC:
 1. Primary Filter (Must Have): Clear buying/upgrade intent (e.g., "Which phone should I buy?", "Upgrade suggestions", "Pixel vs Samsung").
-2. Budget Filter: Reject immediately if budget is explicitly under ₹30k or over ₹50k.
+2. Budget Filter: Reject immediately if budget is explicitly under $350 USD (or equivalent like ₹30k INR, 15k PHP) or over $600 USD (or equivalent). Be mindful of regional currencies like PHP, EUR, and USD before rejecting based on a number.
 3. Country Filter: Identify if India, US, Europe, or Unknown.
 4. Topic Filter: Accept ONLY Buying Advice, Upgrade Advice, Comparison, Battery, Camera, Performance, Display, Longevity, Durability, AI Features.
 5. Theme Matching: Identify exactly ONE dominant theme (e.g., Camera).
