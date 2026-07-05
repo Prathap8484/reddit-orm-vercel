@@ -1,217 +1,224 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, CheckCircle2, Link as LinkIcon } from 'lucide-react';
+import { 
+  FileText, Search, Filter, ShieldCheck, 
+  ChevronRight, Download, Settings, Layers, 
+  MessageSquare, ThumbsUp, Calendar, ArrowRight 
+} from 'lucide-react';
 
-export default function App() {
+export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('studio');
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
-  const [activeAngles, setActiveAngles] = useState(['Battery Life']);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
+  const [selectedPlatform, setSelectedPlatform] = useState('reddit');
 
-  // Mock Metadata mimicking CSV structure
-  const metadata = {
-    title: "S21 is dying by 2PM. Is the S26 battery actually better?",
-    url: "https://reddit.com/r/GalaxyS26/comments/xyz123/...",
-    upvotes: 142,
-    comments: 67,
-    date: "2026-07-05 14:30:00"
-  };
+  // Realistic template data showing correct dark theme colors
+  const quickTemplates = [
+    { title: "Price caveat", text: "Nobody pays launch price for Samsung tbh..." },
+    { title: "Spec caution", text: "Specs on paper mean nothing until real w..." },
+    { title: "Comparison", text: "S24 FE literally cheaper and has a bette..." },
+    { title: "Camera caution", text: "Portraits overprocess af, faces look pl..." }
+  ];
 
-  const angles = ['Battery Life', 'Camera Quality', 'Price/Value', 'Software Updates', 'Durability'];
-
-  const toggleAngle = (angle) => {
-    setActiveAngles(prev => 
-      prev.includes(angle) ? prev.filter(a => a !== angle) : [...prev, angle]
-    );
-  };
+  const angles = ["Battery", "Display", "Software updates", "Camera", "Price/value", "Reliability", "Samsung ecosystem"];
 
   return (
-    <div className="min-h-screen bg-[#050810] text-gray-200 flex flex-col font-sans">
-      {/* HEADER */}
-      <header className="h-14 border-b border-white/10 bg-[#0B0F19] flex items-center px-4 shrink-0">
-        <div className="text-xl font-bold bg-purple-600 text-white w-8 h-8 rounded-lg flex items-center justify-center mr-3">S</div>
-        <div>
-          <div className="font-bold text-sm text-white leading-tight">Samsung ORM</div>
-          <div className="text-xs text-slate-400">Executive Cockpit</div>
+    <div className="min-h-screen bg-[#0B0F19] text-gray-100 font-sans flex flex-col">
+      {/* --- TOP FIXED HEADER --- */}
+      <header className="border-b border-gray-800 bg-[#111827] px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+          <div className="bg-purple-600 p-2.5 rounded-xl text-white font-bold shadow-lg shadow-purple-500/20">S</div>
+          <div>
+            <h1 className="font-bold text-lg leading-tight">Samsung ORM</h1>
+            <p className="text-xs text-gray-400">Comment Generator & Intent Engine</p>
+          </div>
+        </div>
+        
+        {/* Real-time stats engine */}
+        <div className="flex items-center gap-6 text-xs font-medium">
+          <div className="flex gap-4 bg-[#1F2937] px-4 py-2 rounded-xl border border-gray-800">
+            <span className="text-gray-400">Posted: <strong className="text-purple-400 ml-1">0</strong></span>
+            <span className="text-gray-400">To Review: <strong className="text-amber-400 ml-1">0</strong></span>
+            <span className="text-gray-400">Drafted: <strong className="text-blue-400 ml-1">0</strong></span>
+            <span className="text-gray-400">Daily Goal: <strong className="text-emerald-400 ml-1">0/10</strong></span>
+          </div>
+          <div className="flex gap-2">
+            <button className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg font-semibold text-gray-200 transition-all text-xs">
+              <Download className="w-3.5 h-3.5" /> Export CSV
+            </button>
+            <button className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/30 px-3 py-2 rounded-lg font-semibold transition-all text-xs">
+              Settings
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* MAIN LAYOUT */}
-      <div className="flex flex-1 overflow-hidden relative">
+      {/* --- MAIN LAYOUT HOUSING --- */}
+      <div className="flex flex-1 overflow-hidden">
         
-        {/* LEFT SIDEBAR: History (Collapsible) */}
-        <aside 
-          className={`transition-all duration-300 ease-in-out border-r border-white/10 bg-[#0B0F19]/50 flex flex-col relative z-20 ${
-            leftSidebarOpen ? 'w-64' : 'w-0 border-r-0'
-          }`}
-        >
-          {leftSidebarOpen && (
-            <div className="p-4 flex-1 flex flex-col overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-semibold text-white">History</span>
-                <button className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded">+ New</button>
+        {/* 1. LEFT SIDEBAR: COLLAPSIBLE HISTORY */}
+        <aside className={`${isHistoryOpen ? 'w-64' : 'w-16'} bg-[#0F1422] border-r border-gray-800/60 transition-all duration-300 flex flex-col p-4 relative`}>
+          <div className="flex items-center justify-between mb-4">
+            {isHistoryOpen && <span className="text-xs font-bold uppercase tracking-wider text-gray-400">History</span>}
+            <button 
+              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+              className="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 ml-auto text-gray-400"
+            >
+              <ChevronRight className={`w-4 h-4 transform transition-transform ${isHistoryOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+          {isHistoryOpen && (
+            <>
+              <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-all shadow-md shadow-purple-600/10 mb-4">
+                + New Scrape
+              </button>
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-4 border border-dashed border-gray-800 rounded-xl bg-[#0B0F19]/40">
+                <FileText className="w-8 h-8 text-gray-600 mb-2" />
+                <p className="text-xs text-gray-400">No recent leads found yet.</p>
               </div>
+            </>
+          )}
+        </aside>
+
+        {/* 2. CENTER CONSOLE: THE EXECUTIVE WORKSPACE */}
+        <main className="flex-1 bg-[#0B0F19] p-6 overflow-y-auto flex flex-col gap-6">
+          
+          {/* COMPACT SEGMENTED NAVIGATION TAB BAR */}
+          <div className="bg-[#111827] p-1 rounded-xl border border-gray-800 max-w-xl mx-auto w-full flex">
+            <button 
+              onClick={() => setActiveTab('studio')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'studio' ? 'bg-purple-600 text-white shadow-md shadow-purple-600/10' : 'text-gray-400 hover:text-gray-200'}`}
+            >
+              <MessageSquare className="w-3.5 h-3.5" /> Comment Studio
+            </button>
+            <button 
+              onClick={() => setActiveTab('finder')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'finder' ? 'bg-purple-600 text-white shadow-md shadow-purple-600/10' : 'text-gray-400 hover:text-gray-200'}`}
+            >
+              <Search className="w-3.5 h-3.5" /> Lead Finder
+            </button>
+            <button 
+              onClick={() => setActiveTab('filter')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'filter' ? 'bg-purple-600 text-white shadow-md shadow-purple-600/10' : 'text-gray-400 hover:text-gray-200'}`}
+            >
+              <Filter className="w-3.5 h-3.5" /> AI Filter Engine
+            </button>
+          </div>
+
+          {/* STEP 1: POLITE DATA ACQUISITION LAYER */}
+          <section className="bg-[#111827] border border-gray-800/80 rounded-2xl p-5 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-purple-500/10 text-purple-400 p-2 rounded-lg text-xs font-bold">01</div>
+              <h2 className="font-bold text-sm text-gray-200">Where is the target thread?</h2>
+            </div>
+            
+            <div className="flex gap-3 mb-4">
+              <button 
+                onClick={() => setSelectedPlatform('reddit')}
+                className={`px-4 py-2 text-xs font-bold rounded-lg border flex items-center gap-2 transition-all ${selectedPlatform === 'reddit' ? 'bg-purple-600/10 text-purple-400 border-purple-500/40' : 'bg-transparent text-gray-400 border-gray-800 hover:border-gray-700'}`}
+              >
+                🤖 Reddit Link
+              </button>
+              <button 
+                onClick={() => setSelectedPlatform('quora')}
+                className={`px-4 py-2 text-xs font-bold rounded-lg border flex items-center gap-2 transition-all ${selectedPlatform === 'quora' ? 'bg-purple-600/10 text-purple-400 border-purple-500/40' : 'bg-transparent text-gray-400 border-gray-800 hover:border-gray-700'}`}
+              >
+                🔍 Quora Query
+              </button>
+            </div>
+
+            <div className="flex gap-2">
               <input 
                 type="text" 
-                placeholder="Search history..." 
-                className="w-full bg-[#1E2330] border border-white/10 rounded-md px-3 py-2 text-sm mb-4 outline-none focus:border-purple-500 transition-colors text-white"
+                placeholder="Paste the public platform thread URL here..." 
+                className="flex-1 bg-[#1F2937] border border-gray-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500/60 placeholder-gray-500 text-gray-200"
               />
-              <div className="text-xs text-slate-500 text-center mt-10">No recent history</div>
+              <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-purple-600/10">
+                Fetch Data
+              </button>
             </div>
-          )}
-        </aside>
+          </section>
 
-        {/* SIDEBAR TOGGLE BUTTON */}
-        <button 
-          onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-          className="absolute z-30 top-4 bg-purple-600 text-white rounded-full p-1 shadow-lg border border-purple-400 hover:bg-purple-500 transition-all"
-          style={{ left: leftSidebarOpen ? '244px' : '16px' }}
-          title="Toggle Sidebar"
-        >
-          {leftSidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-        </button>
-
-        {/* CENTER CONSOLE */}
-        <main className="flex-1 flex flex-col h-full overflow-hidden p-6 relative bg-gradient-to-b from-[#0B0F19]/20 to-[#050810]">
-          
-          {/* FIX 1: Top Navigation (Segmented Control) */}
-          <div className="flex justify-center mb-6 shrink-0 pt-2">
-            <div className="bg-[#1E2330] p-1 rounded-full flex gap-1 border border-white/5 shadow-inner">
-              {['studio', 'leads', 'filter'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-8 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                    activeTab === tab 
-                      ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(139,92,246,0.4)]' 
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {tab === 'studio' && 'Comment Studio'}
-                  {tab === 'leads' && 'Lead Finder'}
-                  {tab === 'filter' && 'AI Filter Studio'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {activeTab === 'studio' && (
-            <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full gap-5 overflow-y-auto pb-4">
-              
-              {/* FIX 2: Linear Center Console - TOP (URL Input) */}
-              <div className="bg-[#1E2330] border border-white/10 rounded-xl p-4 shrink-0 shadow-sm">
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Source URL</label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <LinkIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                    <input 
-                      type="url" 
-                      placeholder="Paste Reddit URL here..." 
-                      className="w-full bg-[#0B0F19] border border-white/10 rounded-lg pl-9 pr-4 py-2.5 text-sm text-white outline-none focus:border-purple-500 transition-colors placeholder-slate-600"
-                      defaultValue={metadata.url}
-                    />
-                  </div>
-                  <button className="bg-purple-600 hover:bg-purple-500 text-white px-8 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm">
-                    Fetch Context
-                  </button>
-                </div>
+          {/* STEP 2 & 3: GOVERNANCE & PRODUCTION-READY REVIEW OVERVIEW */}
+          <section className="bg-[#111827] border border-gray-800/80 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-500/10 text-purple-400 p-2 rounded-lg text-xs font-bold">02</div>
+                <h2 className="font-bold text-sm text-gray-200">Audit Desk & Response Pipeline</h2>
               </div>
-
-              {/* FIX 2: Linear Center Console - MIDDLE (Native Data Card Preview) */}
-              <div className="bg-[#1E2330] border border-purple-500/20 rounded-xl p-5 shrink-0 shadow-[0_4px_20px_rgba(139,92,246,0.05)]">
-                <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
-                  <h2 className="text-lg font-semibold text-white leading-snug pr-4">{metadata.title}</h2>
-                  <span className="bg-white/5 text-xs px-2 py-1 rounded text-slate-400 whitespace-nowrap border border-white/5">{metadata.date}</span>
-                </div>
-                <div className="flex gap-8 text-sm">
-                  <div className="flex flex-col">
-                    <span className="text-slate-500 text-xs font-medium uppercase tracking-wide">Upvotes</span>
-                    <span className="text-amber-400 font-semibold mt-1">{metadata.upvotes}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-slate-500 text-xs font-medium uppercase tracking-wide">Comments</span>
-                    <span className="text-blue-400 font-semibold mt-1">{metadata.comments}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-slate-500 text-xs font-medium uppercase tracking-wide">Target Lead</span>
-                    <span className="text-emerald-400 font-semibold mt-1">Accept</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* FIX 2: Linear Center Console - BOTTOM (Action Area & Export) */}
-              <div className="flex-1 min-h-[220px] flex flex-col bg-[#0B0F19]/80 border border-white/10 rounded-xl overflow-hidden shadow-sm relative">
-                <div className="px-4 py-2 border-b border-white/5 bg-[#1E2330]/50 flex justify-between items-center">
-                  <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">E-E-A-T Comment Draft</span>
-                  <span className="text-xs text-purple-400 flex items-center gap-1"><CheckCircle2 size={12}/> Ready for review</span>
-                </div>
-                <textarea 
-                  className="flex-1 w-full bg-transparent p-5 text-gray-200 outline-none resize-none placeholder-slate-600 leading-relaxed text-[15px]"
-                  placeholder="Draft your E-E-A-T response here..."
-                  defaultValue={"Battery degradation on older phones is brutal. I was actually weighing similar options recently and ended up grabbing the S26 last month, mainly because I needed reliable battery life for travel. The efficiency on the newer chip has been holding up pretty well so far.\n\nThe only real downside I've noticed is that the fingerprint sensor can be a bit finicky if you're using a thicker glass screen protector. Happy to answer any specific questions if it helps."}
-                />
-                
-                {/* Approve & Export Button */}
-                <div className="bg-[#1E2330] border-t border-white/5 p-4 flex justify-between items-center">
-                  <span className="text-xs text-slate-500">All E-E-A-T rules passed</span>
-                  <button className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-10 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.25)] transition-all flex items-center gap-2">
-                    Approve & Export
-                  </button>
-                </div>
-              </div>
-
+              <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
+                SYSTEM STATE: ACCEPTED
+              </span>
             </div>
-          )}
 
-          {activeTab !== 'studio' && (
-            <div className="flex-1 flex items-center justify-center text-slate-500">
-              Select 'Comment Studio' for the executive workflow view.
+            {/* Structured Metric Display - Mirrors your 6 columns */}
+            <div className="grid grid-cols-3 gap-3 bg-[#0B0F19] p-3 rounded-xl border border-gray-800/60 text-xs">
+              <div className="flex flex-col gap-1"><span className="text-gray-500">Upvotes</span><span className="font-bold text-gray-200 flex items-center gap-1"><ThumbsUp className="w-3.5 h-3.5 text-amber-500" /> 142</span></div>
+              <div className="flex flex-col gap-1"><span className="text-gray-500">Comments</span><span className="font-bold text-gray-200 flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-blue-500" /> 28 replies</span></div>
+              <div className="flex flex-col gap-1"><span className="text-gray-500">Published Date</span><span className="font-bold text-gray-200 flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-purple-500" /> 2026-07-05</span></div>
             </div>
-          )}
 
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Raw Context Input</label>
+              <textarea 
+                rows={3}
+                placeholder="Target conversation text body will auto-populate right here..."
+                className="w-full bg-[#1F2937] border border-gray-800 rounded-xl p-4 text-sm focus:outline-none placeholder-gray-500 text-gray-300"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1">
+                <ShieldCheck className="w-4 h-4" /> E-E-A-T Optimized AI Response Draft (Column C)
+              </label>
+              <textarea 
+                rows={5}
+                placeholder="Claude's functional structured output draft will compile inside this workspace container..."
+                className="w-full bg-[#1F2937] border border-purple-500/20 rounded-xl p-4 text-sm focus:outline-none focus:border-purple-500/40 text-gray-200 font-mono leading-relaxed"
+              />
+            </div>
+
+            <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2 mt-2">
+              Approve Response & Append to Google Sheets CSV <ArrowRight className="w-4 h-4" />
+            </button>
+          </section>
         </main>
 
-        {/* RIGHT SIDEBAR: Utilities */}
-        <aside className="w-72 border-l border-white/10 bg-[#0B0F19]/50 flex flex-col p-5 overflow-y-auto shrink-0 z-10">
+        {/* 3. RIGHT SIDEBAR: DARK MODE COMPLIANT TOOLS */}
+        <aside className="w-72 bg-[#0F1422] border-l border-gray-800/60 p-4 flex flex-col gap-6 overflow-y-auto">
           
-          {/* FIX 3: Muted Dark-Mode Utilities (Quick Templates) */}
-          <div className="mb-8">
-            <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">Quick Templates</h3>
-            <div className="space-y-2">
-              {['Soft Pitch (Battery)', 'Comparison (Camera)', 'Upgrade Advice'].map((tpl, i) => (
-                <button 
-                  key={i}
-                  className="w-full text-left bg-[#1E2330] border border-purple-500/30 hover:border-purple-400 text-gray-200 px-4 py-2.5 rounded-lg text-sm transition-colors shadow-sm"
+          {/* FIXED: The blinding white boxes are now beautiful translucent dark containers */}
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-purple-400" /> Quick Templates
+            </h3>
+            <div className="flex flex-col gap-2">
+              {quickTemplates.map((template, idx) => (
+                <div 
+                  key={idx} 
+                  className="bg-[#161B26] border border-gray-800/80 hover:border-purple-500/30 rounded-xl p-3 cursor-pointer transition-all flex flex-col gap-1 group"
                 >
-                  {tpl}
-                </button>
+                  <span className="text-xs font-bold text-purple-400 group-hover:text-purple-300 transition-colors">{template.title}</span>
+                  <span className="text-xs text-gray-400 line-clamp-1">{template.text}</span>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* FIX 3: Angle Coverage (Interactive Pills) */}
+          {/* Polished Interactive Angle Coverage Section */}
           <div>
-            <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">Angle Coverage</h3>
-            <div className="flex flex-wrap gap-2">
-              {angles.map(angle => {
-                const isActive = activeAngles.includes(angle);
-                return (
-                  <button
-                    key={angle}
-                    onClick={() => toggleAngle(angle)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-all border ${
-                      isActive 
-                        ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
-                        : 'bg-[#1E2330] border-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-300'
-                    }`}
-                  >
-                    {isActive && <CheckCircle2 size={12} strokeWidth={3} />}
-                    {angle}
-                  </button>
-                );
-              })}
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Angle Coverage</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {angles.map((angle, idx) => (
+                <span 
+                  key={idx} 
+                  className="bg-[#1F2937] hover:bg-purple-600/10 hover:text-purple-400 border border-gray-800 hover:border-purple-500/20 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-300 cursor-pointer transition-all flex items-center gap-1"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> {angle}
+                </span>
+              ))}
             </div>
           </div>
-
         </aside>
+
       </div>
     </div>
   );
