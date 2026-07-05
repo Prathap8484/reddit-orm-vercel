@@ -1,0 +1,6 @@
+duckduckgo-search
+tenacity
+anthropic
+pydantic
+requests
+python-dotenv
