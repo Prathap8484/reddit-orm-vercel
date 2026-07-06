@@ -469,10 +469,16 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      // Use our realistic mock data
-      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network latency
-      setLeads(mockLeads);
-      setStats({ total: mockLeads.length, scored: mockLeads.length, harvested: mockLeads.length });
+      const response = await fetch('/api/leads', {
+        headers: {
+          'x-app-password': config.passcode || '',
+        },
+        cache: 'no-store'
+      });
+      if (!response.ok) throw new Error('Failed to fetch leads');
+      const data = await response.json();
+      setLeads(data.leads || []);
+      setStats(data.counts || { total: 0, scored: 0, harvested: 0 });
     } catch (err) {
       setError(err.message);
       setLeads([]);
@@ -488,8 +494,7 @@ export default function Dashboard() {
     .filter(l => !approvedIds.has(l.id))
     .filter(l => {
       // STRICT FILTERING: Must have a valid drafted comment
-      const draft = l.drafted_comment || l.reason;
-      return draft && draft.trim().length > 0;
+      return l.drafted_comment && l.drafted_comment.trim().length > 0;
     })
     .filter(l => {
       if (filterPriority === 'high') return l.priorityScore >= 70;

@@ -158,6 +158,13 @@ def run_pipeline():
             analysis = analyze_intent_and_draft(reddit_data["text_content"])
             
             if analysis and analysis.get("decision") == "ACCEPT":
+                drafted_comment = analysis.get("drafted_comment")
+                
+                # Strict backend validation
+                if not drafted_comment or not isinstance(drafted_comment, str) or len(drafted_comment) <= 20:
+                    print("Lead skipped: Claude returned ACCEPT but failed to generate a valid comment.")
+                    continue
+                    
                 logging.info(f"[ACCEPT] Lead found and comment drafted for: {reddit_data['title']}")
                 
                 try:
@@ -165,7 +172,7 @@ def run_pipeline():
                         INSERT INTO pending_leads (device_model, post_title, post_url, upvotes, num_comments, published_date, drafted_comment)
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (post_url) DO NOTHING;
-                    """, (device_model, reddit_data["title"], url, reddit_data["upvotes"], reddit_data["num_comments"], reddit_data["published_date"], analysis.get("drafted_comment")))
+                    """, (device_model, reddit_data["title"], url, reddit_data["upvotes"], reddit_data["num_comments"], reddit_data["published_date"], drafted_comment))
                     conn.commit()
                     logging.info("Successfully inserted lead into Neon database.")
                 except Exception as e:
