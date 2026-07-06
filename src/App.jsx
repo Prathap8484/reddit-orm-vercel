@@ -158,6 +158,7 @@ function SettingsPanel({ isOpen, onClose, config, onSave }) {
 // ═══════════════════════════════════════════════════════════════════════
 
 function ApprovalCard({ lead, index, onApprove }) {
+  const hasDraft = Boolean(lead.reason && lead.reason.trim());
   const [draft, setDraft] = useState(lead.reason || '');
   const [isApproving, setIsApproving] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
@@ -269,23 +270,50 @@ function ApprovalCard({ lead, index, onApprove }) {
           <ShieldCheck className="w-3.5 h-3.5" />
           E-E-A-T Optimized Draft Response
         </label>
-        <textarea
-          rows={4}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="AI-generated response draft will appear here for your review..."
-          className="w-full bg-[#0B0F19] border border-gray-800/60 focus:border-purple-500/30 rounded-xl px-4 py-3 text-sm focus:outline-none text-gray-300 font-mono leading-relaxed resize-none transition-colors placeholder-gray-600"
-        />
+        {hasDraft ? (
+          <textarea
+            rows={4}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="AI-generated response draft will appear here for your review..."
+            className="w-full bg-[#0B0F19] border border-gray-800/60 focus:border-purple-500/30 rounded-xl px-4 py-3 text-sm focus:outline-none text-gray-300 font-mono leading-relaxed resize-none transition-colors placeholder-gray-600"
+          />
+        ) : (
+          <div className="relative w-full">
+            <textarea
+              rows={4}
+              disabled
+              value=""
+              className="w-full bg-[#0B0F19]/50 border border-amber-500/20 rounded-xl px-4 py-3 text-sm text-gray-600 font-mono leading-relaxed resize-none cursor-not-allowed"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-amber-950/20 border border-amber-500/20 rounded-xl backdrop-blur-[1px]">
+              <span className="flex items-center gap-2 text-amber-400/90 text-sm font-semibold">
+                <AlertTriangle className="w-4 h-4" />
+                AI Processing or Intent Rejected — No Draft Available
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Action Footer ─────────────────────────────────── */}
       <div className="px-5 pb-5">
         <button
           onClick={handleApprove}
-          disabled={isApproving}
-          className="relative approve-pulse w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:from-emerald-800 disabled:to-emerald-700 disabled:cursor-wait text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/15 hover:shadow-emerald-500/25 flex items-center justify-center gap-2.5"
+          disabled={isApproving || !hasDraft}
+          title={!hasDraft ? 'Cannot approve — no AI draft available' : undefined}
+          className={`relative w-full font-bold py-3.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2.5 ${
+            !hasDraft
+              ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700/40'
+              : 'approve-pulse bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:from-emerald-800 disabled:to-emerald-700 disabled:cursor-wait text-white shadow-lg shadow-emerald-600/15 hover:shadow-emerald-500/25'
+          }`}
         >
-          {isApproving ? (
+          {!hasDraft ? (
+            <>
+              <AlertTriangle className="w-4 h-4" />
+              Approve Disabled — No Draft
+            </>
+          ) : isApproving ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
               Appending to Google Sheets…
@@ -524,6 +552,13 @@ export default function Dashboard() {
             title="Export visible leads as CSV"
           >
             <Download className="w-3.5 h-3.5" /> Export
+          </button>
+          <button
+            onClick={() => { /* TODO: wire to backend scraping pipeline */ }}
+            className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-xl font-bold text-white transition-all text-xs shadow-lg shadow-purple-600/20 hover:shadow-purple-700/30"
+            title="Trigger the scraping pipeline to find new leads"
+          >
+            🔍 Find New Leads
           </button>
           <button
             onClick={() => setSettingsOpen(true)}
