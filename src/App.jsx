@@ -67,7 +67,9 @@ export default function Dashboard() {
           </div>
           {isHistoryOpen && (
             <>
-              <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-all shadow-md shadow-purple-600/10 mb-4">
+              <button 
+                onClick={() => setActiveTab('finder')}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-all shadow-md shadow-purple-600/10 mb-4">
                 + New Scrape
               </button>
               <div className="flex-1 flex flex-col items-center justify-center text-center p-4 border border-dashed border-gray-800 rounded-xl bg-[#0B0F19]/40">
@@ -104,82 +106,114 @@ export default function Dashboard() {
           </div>
 
           {/* STEP 1: POLITE DATA ACQUISITION LAYER */}
-          <section className="bg-[#111827] border border-gray-800/80 rounded-2xl p-5 shadow-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-purple-500/10 text-purple-400 p-2 rounded-lg text-xs font-bold">01</div>
-              <h2 className="font-bold text-sm text-gray-200">Where is the target thread?</h2>
-            </div>
-            
-            <div className="flex gap-3 mb-4">
-              <button 
-                onClick={() => setSelectedPlatform('reddit')}
-                className={`px-4 py-2 text-xs font-bold rounded-lg border flex items-center gap-2 transition-all ${selectedPlatform === 'reddit' ? 'bg-purple-600/10 text-purple-400 border-purple-500/40' : 'bg-transparent text-gray-400 border-gray-800 hover:border-gray-700'}`}
-              >
-                🤖 Reddit Link
-              </button>
-              <button 
-                onClick={() => setSelectedPlatform('quora')}
-                className={`px-4 py-2 text-xs font-bold rounded-lg border flex items-center gap-2 transition-all ${selectedPlatform === 'quora' ? 'bg-purple-600/10 text-purple-400 border-purple-500/40' : 'bg-transparent text-gray-400 border-gray-800 hover:border-gray-700'}`}
-              >
-                🔍 Quora Query
-              </button>
-            </div>
+          {activeTab === 'finder' && (
+            <section className="bg-[#111827] border border-gray-800/80 rounded-2xl p-5 shadow-xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-purple-500/10 text-purple-400 p-2 rounded-lg text-xs font-bold">01</div>
+                <h2 className="font-bold text-sm text-gray-200">Where is the target thread?</h2>
+              </div>
+              
+              <div className="flex gap-3 mb-4">
+                <button 
+                  onClick={() => setSelectedPlatform('reddit')}
+                  className={`px-4 py-2 text-xs font-bold rounded-lg border flex items-center gap-2 transition-all ${selectedPlatform === 'reddit' ? 'bg-purple-600/10 text-purple-400 border-purple-500/40' : 'bg-transparent text-gray-400 border-gray-800 hover:border-gray-700'}`}
+                >
+                  🤖 Reddit Link
+                </button>
+                <button 
+                  onClick={() => setSelectedPlatform('quora')}
+                  className={`px-4 py-2 text-xs font-bold rounded-lg border flex items-center gap-2 transition-all ${selectedPlatform === 'quora' ? 'bg-purple-600/10 text-purple-400 border-purple-500/40' : 'bg-transparent text-gray-400 border-gray-800 hover:border-gray-700'}`}
+                >
+                  🔍 Quora Query
+                </button>
+              </div>
 
-            <div className="flex gap-2">
-              <input 
-                type="text" 
-                placeholder="Paste the public platform thread URL here..." 
-                className="flex-1 bg-[#1F2937] border border-gray-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500/60 placeholder-gray-500 text-gray-200"
-              />
-              <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-purple-600/10">
-                Fetch Data
-              </button>
-            </div>
-          </section>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="Paste the public platform thread URL here..." 
+                  className="flex-1 bg-[#1F2937] border border-gray-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500/60 placeholder-gray-500 text-gray-200"
+                />
+                <button 
+                  onClick={() => setActiveTab('studio')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-purple-600/10">
+                  Fetch Data
+                </button>
+              </div>
+            </section>
+          )}
 
           {/* STEP 2 & 3: GOVERNANCE & PRODUCTION-READY REVIEW OVERVIEW */}
-          <section className="bg-[#111827] border border-gray-800/80 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-purple-500/10 text-purple-400 p-2 rounded-lg text-xs font-bold">02</div>
-                <h2 className="font-bold text-sm text-gray-200">Audit Desk & Response Pipeline</h2>
+          {activeTab === 'studio' && (
+            <section className="bg-[#111827] border border-gray-800/80 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-500/10 text-purple-400 p-2 rounded-lg text-xs font-bold">02</div>
+                  <h2 className="font-bold text-sm text-gray-200">Audit Desk & Response Pipeline</h2>
+                </div>
+                <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
+                  SYSTEM STATE: ACCEPTED
+                </span>
               </div>
-              <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
-                SYSTEM STATE: ACCEPTED
-              </span>
-            </div>
 
-            {/* Structured Metric Display - Mirrors your 6 columns */}
-            <div className="grid grid-cols-3 gap-3 bg-[#0B0F19] p-3 rounded-xl border border-gray-800/60 text-xs">
-              <div className="flex flex-col gap-1"><span className="text-gray-500">Upvotes</span><span className="font-bold text-gray-200 flex items-center gap-1"><ThumbsUp className="w-3.5 h-3.5 text-amber-500" /> 142</span></div>
-              <div className="flex flex-col gap-1"><span className="text-gray-500">Comments</span><span className="font-bold text-gray-200 flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-blue-500" /> 28 replies</span></div>
-              <div className="flex flex-col gap-1"><span className="text-gray-500">Published Date</span><span className="font-bold text-gray-200 flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-purple-500" /> 2026-07-05</span></div>
-            </div>
+              {/* Structured Metric Display - Mirrors your 6 columns */}
+              <div className="grid grid-cols-3 gap-3 bg-[#0B0F19] p-3 rounded-xl border border-gray-800/60 text-xs">
+                <div className="flex flex-col gap-1"><span className="text-gray-500">Upvotes</span><span className="font-bold text-gray-200 flex items-center gap-1"><ThumbsUp className="w-3.5 h-3.5 text-amber-500" /> 142</span></div>
+                <div className="flex flex-col gap-1"><span className="text-gray-500">Comments</span><span className="font-bold text-gray-200 flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-blue-500" /> 28 replies</span></div>
+                <div className="flex flex-col gap-1"><span className="text-gray-500">Published Date</span><span className="font-bold text-gray-200 flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-purple-500" /> 2026-07-05</span></div>
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Raw Context Input</label>
-              <textarea 
-                rows={3}
-                placeholder="Target conversation text body will auto-populate right here..."
-                className="w-full bg-[#1F2937] border border-gray-800 rounded-xl p-4 text-sm focus:outline-none placeholder-gray-500 text-gray-300"
-              />
-            </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Raw Context Input</label>
+                <textarea 
+                  rows={3}
+                  placeholder="Target conversation text body will auto-populate right here..."
+                  className="w-full bg-[#1F2937] border border-gray-800 rounded-xl p-4 text-sm focus:outline-none placeholder-gray-500 text-gray-300"
+                />
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4" /> E-E-A-T Optimized AI Response Draft (Column C)
-              </label>
-              <textarea 
-                rows={5}
-                placeholder="Claude's functional structured output draft will compile inside this workspace container..."
-                className="w-full bg-[#1F2937] border border-purple-500/20 rounded-xl p-4 text-sm focus:outline-none focus:border-purple-500/40 text-gray-200 font-mono leading-relaxed"
-              />
-            </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1">
+                  <ShieldCheck className="w-4 h-4" /> E-E-A-T Optimized AI Response Draft (Column C)
+                </label>
+                <textarea 
+                  rows={5}
+                  placeholder="Claude's functional structured output draft will compile inside this workspace container..."
+                  className="w-full bg-[#1F2937] border border-purple-500/20 rounded-xl p-4 text-sm focus:outline-none focus:border-purple-500/40 text-gray-200 font-mono leading-relaxed"
+                />
+              </div>
 
-            <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2 mt-2">
-              Approve Response & Append to Google Sheets CSV <ArrowRight className="w-4 h-4" />
-            </button>
-          </section>
+              <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2 mt-2">
+                Approve Response & Append to Google Sheets CSV <ArrowRight className="w-4 h-4" />
+              </button>
+            </section>
+          )}
+
+          {/* AI FILTER ENGINE VIEW */}
+          {activeTab === 'filter' && (
+            <section className="bg-[#111827] border border-gray-800/80 rounded-2xl p-8 shadow-xl flex flex-col items-center justify-center text-center gap-4">
+              <div className="bg-purple-900/30 p-4 rounded-full mb-2">
+                <Filter className="w-8 h-8 text-purple-400" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-200">AI Filter Engine</h2>
+              <p className="text-sm text-gray-400 max-w-md">
+                Configure filtering rules, keyword inclusion/exclusion, and sentiment thresholds to automatically qualify leads before they reach the Comment Studio.
+              </p>
+              <div className="grid grid-cols-2 gap-4 w-full mt-6 max-w-lg text-left">
+                <div className="bg-[#1F2937] p-4 rounded-xl border border-gray-800">
+                  <h3 className="text-sm font-bold text-gray-200 mb-1">Keywords</h3>
+                  <p className="text-xs text-gray-500">Manage required and excluded terms</p>
+                </div>
+                <div className="bg-[#1F2937] p-4 rounded-xl border border-gray-800">
+                  <h3 className="text-sm font-bold text-gray-200 mb-1">Sentiment</h3>
+                  <p className="text-xs text-gray-500">Adjust emotional thresholds</p>
+                </div>
+              </div>
+              <button className="mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-purple-600/10">
+                Save Filter Configuration
+              </button>
+            </section>
+          )}
         </main>
 
         {/* 3. RIGHT SIDEBAR: DARK MODE COMPLIANT TOOLS */}
