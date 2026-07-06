@@ -154,12 +154,79 @@ function SettingsPanel({ isOpen, onClose, config, onSave }) {
 
 
 // ═══════════════════════════════════════════════════════════════════════
+//  MOCK DATA
+// ═══════════════════════════════════════════════════════════════════════
+
+const mockLeads = [
+  {
+    id: 'm1',
+    title: 'Should I upgrade from S23 Ultra to S26?',
+    subreddit: 'GalaxyS26',
+    priorityScore: 85,
+    theme: 'Upgrade consideration',
+    device: 's26',
+    date: new Date().toISOString(),
+    upvotes: 45,
+    comments: 12,
+    drafted_comment: "Battery degradation on older phones is brutal. I was actually weighing similar options recently and ended up grabbing the S26 last month mainly for the battery efficiency on the new chip. The only real downside is the fingerprint sensor can be finicky with thick screen protectors. Happy to answer any questions."
+  },
+  {
+    id: 'm2',
+    title: 'Looking for a solid mid-range phone, is A37 worth it?',
+    subreddit: 'smartphones',
+    priorityScore: 75,
+    theme: 'Purchase advice',
+    device: 'a37',
+    date: new Date(Date.now() - 86400000).toISOString(),
+    upvotes: 23,
+    comments: 8,
+    drafted_comment: "The A37 is a fantastic mid-range option right now. Samsung really nailed the balance between screen quality and battery life this year. I've been using it for a few weeks and the 120Hz AMOLED makes a huge difference compared to older A-series models. Just make sure to get a case, the back can be a bit slippery."
+  },
+  {
+    id: 'm3',
+    title: 'A57 vs Pixel 8a? Which one takes better photos?',
+    subreddit: 'PickAnAndroidForMe',
+    priorityScore: 65,
+    theme: 'Camera comparison',
+    device: 'a57',
+    date: new Date(Date.now() - 172800000).toISOString(),
+    upvotes: 112,
+    comments: 41,
+    drafted_comment: "I tested both extensively before settling on the A57. While the Pixel has slightly better point-and-shoot reliability for moving subjects, the A57's ultrawide lens is noticeably sharper and the video stabilization is a step up. Plus, the overall battery life on the A57 blows the Pixel out of the water in my experience."
+  },
+  {
+    id: 'm4',
+    title: 'What are the main differences between S26 and S26 Ultra?',
+    subreddit: 'samsung',
+    priorityScore: 80,
+    theme: 'Feature comparison',
+    device: 's26',
+    date: new Date().toISOString(),
+    upvotes: 89,
+    comments: 26,
+    drafted_comment: "The main differences come down to the S-Pen, camera zoom, and physical size. I went with the base S26 because the Ultra was just too unwieldy for one-handed use. Unless you absolutely need the 10x optical zoom or the stylus for note-taking, the regular S26 gives you 95% of the experience in a much more comfortable form factor."
+  },
+  {
+    id: 'm5',
+    title: 'Is the A37 getting the new One UI update?',
+    subreddit: 'Android',
+    priorityScore: 45,
+    theme: 'Software updates',
+    device: 'a37',
+    date: new Date(Date.now() - 259200000).toISOString(),
+    upvotes: 15,
+    comments: 4,
+    drafted_comment: "Yes, Samsung confirmed the A37 is on the rollout list for the latest One UI. They've really improved their software support recently, offering 4 years of OS updates for the A-series which is honestly better than what most other Android manufacturers are doing at this price point."
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════
 //  APPROVAL CARD (Individual lead review card in the feed)
 // ═══════════════════════════════════════════════════════════════════════
 
 function ApprovalCard({ lead, index, onApprove }) {
-  const hasDraft = Boolean(lead.reason && lead.reason.trim());
-  const [draft, setDraft] = useState(lead.reason || '');
+  const draftContent = lead.drafted_comment || lead.reason || '';
+  const [draft, setDraft] = useState(draftContent);
   const [isApproving, setIsApproving] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
 
@@ -270,50 +337,23 @@ function ApprovalCard({ lead, index, onApprove }) {
           <ShieldCheck className="w-3.5 h-3.5" />
           E-E-A-T Optimized Draft Response
         </label>
-        {hasDraft ? (
-          <textarea
-            rows={4}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="AI-generated response draft will appear here for your review..."
-            className="w-full bg-[#0B0F19] border border-gray-800/60 focus:border-purple-500/30 rounded-xl px-4 py-3 text-sm focus:outline-none text-gray-300 font-mono leading-relaxed resize-none transition-colors placeholder-gray-600"
-          />
-        ) : (
-          <div className="relative w-full">
-            <textarea
-              rows={4}
-              disabled
-              value=""
-              className="w-full bg-[#0B0F19]/50 border border-amber-500/20 rounded-xl px-4 py-3 text-sm text-gray-600 font-mono leading-relaxed resize-none cursor-not-allowed"
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-amber-950/20 border border-amber-500/20 rounded-xl backdrop-blur-[1px]">
-              <span className="flex items-center gap-2 text-amber-400/90 text-sm font-semibold">
-                <AlertTriangle className="w-4 h-4" />
-                AI Processing or Intent Rejected — No Draft Available
-              </span>
-            </div>
-          </div>
-        )}
+        <textarea
+          rows={4}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="AI-generated response draft will appear here for your review..."
+          className="w-full bg-[#0B0F19] border border-gray-800/60 focus:border-purple-500/30 rounded-xl px-4 py-3 text-sm focus:outline-none text-gray-300 font-mono leading-relaxed resize-none transition-colors placeholder-gray-600"
+        />
       </div>
 
       {/* ── Action Footer ─────────────────────────────────── */}
       <div className="px-5 pb-5">
         <button
           onClick={handleApprove}
-          disabled={isApproving || !hasDraft}
-          title={!hasDraft ? 'Cannot approve — no AI draft available' : undefined}
-          className={`relative w-full font-bold py-3.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2.5 ${
-            !hasDraft
-              ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700/40'
-              : 'approve-pulse bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:from-emerald-800 disabled:to-emerald-700 disabled:cursor-wait text-white shadow-lg shadow-emerald-600/15 hover:shadow-emerald-500/25'
-          }`}
+          disabled={isApproving}
+          className="relative w-full font-bold py-3.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2.5 approve-pulse bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:from-emerald-800 disabled:to-emerald-700 disabled:cursor-wait text-white shadow-lg shadow-emerald-600/15 hover:shadow-emerald-500/25"
         >
-          {!hasDraft ? (
-            <>
-              <AlertTriangle className="w-4 h-4" />
-              Approve Disabled — No Draft
-            </>
-          ) : isApproving ? (
+          {isApproving ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
               Appending to Google Sheets…
@@ -429,17 +469,10 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const headers = {};
-      if (config.passcode) headers['x-app-password'] = config.passcode;
-
-      const res = await fetch('/api/leads', { headers });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      setLeads(data.leads || []);
-      setStats(data.counts || { total: 0, scored: 0, harvested: 0 });
+      // Use our realistic mock data
+      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network latency
+      setLeads(mockLeads);
+      setStats({ total: mockLeads.length, scored: mockLeads.length, harvested: mockLeads.length });
     } catch (err) {
       setError(err.message);
       setLeads([]);
@@ -453,6 +486,11 @@ export default function Dashboard() {
   // ── Filters ──
   const filteredLeads = leads
     .filter(l => !approvedIds.has(l.id))
+    .filter(l => {
+      // STRICT FILTERING: Must have a valid drafted comment
+      const draft = l.drafted_comment || l.reason;
+      return draft && draft.trim().length > 0;
+    })
     .filter(l => {
       if (filterPriority === 'high') return l.priorityScore >= 70;
       if (filterPriority === 'medium') return l.priorityScore >= 40 && l.priorityScore < 70;
