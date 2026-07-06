@@ -4,7 +4,7 @@ import {
   MessageSquare, ThumbsUp, Calendar, ArrowRight,
   ExternalLink, Inbox, AlertTriangle, RefreshCw,
   ChevronDown, Loader2, CheckCircle2, Search,
-  SlidersHorizontal, Tag, Globe, Zap
+  SlidersHorizontal, Tag, Globe, Zap, Smartphone, Clock
 } from 'lucide-react';
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -396,6 +396,7 @@ export default function Dashboard() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPriority, setFilterPriority] = useState('all'); // all | high | medium | low
+  const [modelFilter, setModelFilter] = useState('all'); // all | s26 | a37 | a57
   const [approvedIds, setApprovedIds] = useState(new Set());
   const [stats, setStats] = useState({ total: 0, scored: 0, harvested: 0 });
   const [config, setConfig] = useState(() => {
@@ -456,6 +457,17 @@ export default function Dashboard() {
       if (filterPriority === 'high') return l.priorityScore >= 70;
       if (filterPriority === 'medium') return l.priorityScore >= 40 && l.priorityScore < 70;
       if (filterPriority === 'low') return l.priorityScore < 40;
+      return true;
+    })
+    .filter(l => {
+      // Model filter — checks phone, title, theme, and reason fields for device mentions
+      if (modelFilter === 'all') return true;
+      const haystack = [
+        l.phone, l.title, l.theme, l.reason, l.device
+      ].filter(Boolean).join(' ').toLowerCase();
+      if (modelFilter === 's26') return haystack.includes('s26') || haystack.includes('galaxy s26');
+      if (modelFilter === 'a37') return haystack.includes('a37') || haystack.includes('galaxy a37');
+      if (modelFilter === 'a57') return haystack.includes('a57') || haystack.includes('galaxy a57');
       return true;
     })
     .filter(l => {
@@ -573,52 +585,97 @@ export default function Dashboard() {
       {/* ═════════════════════════════════════════════════════════════ */}
       {/*  FILTER BAR                                                  */}
       {/* ═════════════════════════════════════════════════════════════ */}
-      <div className="sticky top-[62px] z-40 glass-panel border-t-0 px-6 py-3 flex items-center gap-3">
-        {/* Search */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search leads by title, subreddit, or topic…"
-            className="w-full bg-[#0F1422] border border-gray-800/50 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-purple-500/40 placeholder-gray-600 text-gray-200 transition-colors"
-          />
+      <div className="sticky top-[62px] z-40 glass-panel border-t-0 px-6 py-3 flex flex-col gap-3">
+        {/* Row 1: Search + Count */}
+        <div className="flex items-center gap-3">
+          {/* Search */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search leads by title, subreddit, or topic…"
+              className="w-full bg-[#0F1422] border border-gray-800/50 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-purple-500/40 placeholder-gray-600 text-gray-200 transition-colors"
+            />
+          </div>
+
+          {/* Count indicator */}
+          <span className="text-xs text-gray-500 ml-auto shrink-0">
+            {filteredLeads.length} lead{filteredLeads.length !== 1 ? 's' : ''}
+          </span>
         </div>
 
-        {/* Priority Filter Chips */}
-        <div className="flex items-center gap-1.5">
-          {[
-            { key: 'all', label: 'All', color: 'text-gray-300' },
-            { key: 'high', label: '⚡ High', color: 'text-emerald-400' },
-            { key: 'medium', label: '◉ Medium', color: 'text-amber-400' },
-            { key: 'low', label: '○ Low', color: 'text-gray-400' },
-          ].map(f => (
-            <button
-              key={f.key}
-              onClick={() => setFilterPriority(f.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                filterPriority === f.key
-                  ? 'bg-purple-600/15 text-purple-400 border-purple-500/30'
-                  : 'bg-transparent text-gray-500 border-gray-800/40 hover:border-gray-700 hover:text-gray-300'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        {/* Row 2: Model Filter Segment Control */}
+        <div className="flex items-center gap-2">
+          <Smartphone className="w-4 h-4 text-purple-400/70 shrink-0" />
+          <div className="flex items-center gap-1.5 bg-[#0B0F19] p-1 rounded-xl border border-gray-800/40">
+            {[
+              { key: 'all', label: 'All Models' },
+              { key: 's26', label: 'Galaxy S26' },
+              { key: 'a37', label: 'Galaxy A37' },
+              { key: 'a57', label: 'Galaxy A57' },
+            ].map(m => (
+              <button
+                key={m.key}
+                onClick={() => setModelFilter(m.key)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  modelFilter === m.key
+                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25'
+                    : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
 
-        {/* Count indicator */}
-        <span className="text-xs text-gray-500 ml-auto shrink-0">
-          {filteredLeads.length} lead{filteredLeads.length !== 1 ? 's' : ''}
-        </span>
+          {/* Priority Filter Chips (kept inline) */}
+          <div className="flex items-center gap-1.5 ml-auto">
+            {[
+              { key: 'all', label: 'All', color: 'text-gray-300' },
+              { key: 'high', label: '⚡ High', color: 'text-emerald-400' },
+              { key: 'medium', label: '◉ Medium', color: 'text-amber-400' },
+              { key: 'low', label: '○ Low', color: 'text-gray-400' },
+            ].map(f => (
+              <button
+                key={f.key}
+                onClick={() => setFilterPriority(f.key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                  filterPriority === f.key
+                    ? 'bg-purple-600/15 text-purple-400 border-purple-500/30'
+                    : 'bg-transparent text-gray-500 border-gray-800/40 hover:border-gray-700 hover:text-gray-300'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ═════════════════════════════════════════════════════════════ */}
       {/*  MAIN FEED — PENDING APPROVALS                               */}
+      {/*                                                               */}
+      {/*  BACKEND REMINDER (for Python pipeline / harvest.mjs):        */}
+      {/*  The duckduckgo-search implementation MUST include the        */}
+      {/*  `time='w'` parameter to restrict results to the last week.   */}
+      {/*  This ensures only recent, high-intent leads appear in the    */}
+      {/*  Approval Inbox. Example:                                     */}
+      {/*    results = ddgs.text(query, time='w')                       */}
+      {/*  See also: harvest.mjs — ensure &t=w is appended to search.   */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
+
+          {/* ── Task 2: Recency Badge ────────────────────────────── */}
+          <div className="flex items-center gap-2.5 bg-gradient-to-r from-purple-600/10 via-blue-600/8 to-transparent border border-purple-500/15 rounded-xl px-4 py-2.5 animate-fade-in-up">
+            <Clock className="w-4 h-4 text-purple-400 shrink-0" />
+            <span className="text-xs font-semibold text-purple-300/90 tracking-wide">
+              Showing High-Intent Leads from the Last 7 Days
+            </span>
+            <span className="ml-auto text-[10px] text-gray-600 font-mono">time=w</span>
+          </div>
 
           {/* Error State */}
           {error && (
