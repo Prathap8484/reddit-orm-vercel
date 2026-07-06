@@ -1,6 +1,6 @@
 import os
 import time
-import csv
+import psycopg2
 import logging
 import requests
 from datetime import datetime
@@ -20,7 +20,9 @@ SEARCH_QUERIES = [
     'site:reddit.com "Galaxy A37"', 
     'site:reddit.com "Galaxy A57"'
 ]
-CSV_FILE = "reddit_geo_leads.csv"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL not found in environment variables.")
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 GEO-Pipeline/2.0"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -121,23 +123,24 @@ def analyze_intent_and_draft(text_content: str) -> dict | None:
 def run_pipeline():
     logging.info("Starting End-to-End GEO Pipeline...")
     
-    # Initialize CSV with the exact requested Google Sheets schema
-    with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow([
-            'Title of the post', 
-            'url of the reddit post', 
-            'comment for that reddit post which we should write', 
-            'upvotes for the reddit post', 
-            'comments for that reddit post', 
-            'date of the reddit post published'
-        ])
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+    except Exception as e:
+        logging.error(f"Database connection failed: {e}")
+        return
     
     ddgs = DDGS()
     processed_urls = set()
     
     for query in SEARCH_QUERIES:
         logging.info(f"Executing search dork: {query}")
+        
+        device_model = "Unknown"
+        if "S26" in query: device_model = "S26"
+        elif "A37" in query: device_model = "A37"
+        elif "A57" in query: device_model = "A57"
+        
         results = ddgs.text(query, max_results=15)
         
         for result in results:
@@ -157,20 +160,23 @@ def run_pipeline():
             if analysis and analysis.get("decision") == "ACCEPT":
                 logging.info(f"[ACCEPT] Lead found and comment drafted for: {reddit_data['title']}")
                 
-                with open(CSV_FILE, mode='a', newline='', encoding='utf-8') as file:
-                    writer = csv.writer(file)
-                    writer.writerow([
-                        reddit_data["title"],
-                        url,
-                        analysis.get("drafted_comment"),
-                        reddit_data["upvotes"],
-                        reddit_data["num_comments"],
-                        reddit_data["published_date"]
-                    ])
+                try:
+                    cursor.execute("""
+                        INSERT INTO pending_leads (device_model, post_title, post_url, upvotes, num_comments, published_date, drafted_comment)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (post_url) DO NOTHING;
+                    """, (device_model, reddit_data["title"], url, reddit_data["upvotes"], reddit_data["num_comments"], reddit_data["published_date"], analysis.get("drafted_comment")))
+                    conn.commit()
+                    logging.info("Successfully inserted lead into Neon database.")
+                except Exception as e:
+                    logging.error(f"Failed to insert lead into database: {e}")
+                    conn.rollback()
             else:
                 logging.info("[REJECT] No actionable intent.")
 
-    logging.info(f"Pipeline complete. Data saved to {CSV_FILE}. Ready for Google Sheets import.")
+    cursor.close()
+    conn.close()
+    logging.info("Pipeline complete. Data inserted into pending_leads table.")
 
 if __name__ == "__main__":
     run_pipeline()
