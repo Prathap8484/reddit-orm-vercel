@@ -141,11 +141,11 @@ def run_pipeline():
         elif "A37" in query: device_model = "A37"
         elif "A57" in query: device_model = "A57"
         
-        results = ddgs.text(query, max_results=15)
+        results = ddgs.text(query, max_results=15, timelimit='w')
         
         for result in results:
             url = result.get('href', '')
-            if '[reddit.com/r/](https://reddit.com/r/)' not in url or '/comments/' not in url or url in processed_urls:
+            if 'reddit.com/r/' not in url or '/comments/' not in url or url in processed_urls:
                 continue
                 
             processed_urls.add(url)
@@ -156,6 +156,7 @@ def run_pipeline():
                 continue
                 
             analysis = analyze_intent_and_draft(reddit_data["text_content"])
+
             
             if analysis and analysis.get("decision") == "ACCEPT":
                 drafted_comment = analysis.get("drafted_comment")
