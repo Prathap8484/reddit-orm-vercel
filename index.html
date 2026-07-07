@@ -370,11 +370,191 @@
 
   <!-- ══ TOAST ══ -->
   <div id="toast" class="toast"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Batch area -->
+      <section class="step-card">
+        <div class="step-num">+</div>
+        <div class="step-body">
+          <h2 class="step-title">Batch Import (Reddit)</h2>
+          <p class="step-desc">Paste multiple Reddit URLs, one per line.</p>
+          <textarea id="batchInput" class="context-ta" rows="3" placeholder="https://reddit.com/r/…&#10;https://reddit.com/r/…"></textarea>
+          <div class="batch-btns">
+            <button class="btn-secondary" id="batchScrapeBtn">Fetch + Generate All</button>
+            <button class="btn-ghost-sm" id="batchAddBtn">Add Only</button>
+          </div>
+          <div id="batchSummary" class="msg-hint"></div>
+          <div id="batchResults"></div>
+        </div>
+      </section>
+
+      <div id="batchCommentsReview" class="batch-review-area"></div>
+
+      </div> <!-- /tab-studio -->
+
+      <!-- TAB: LEAD FINDER -->
+      <div id="tab-leads" class="tab-content">
+        <div class="lead-controls">
+          <div class="lead-quick-btns">
+            <button class="btn-primary" id="priorityDashBtn">★ Priority Dashboard</button>
+            <button class="btn-secondary" id="searchS26Btn">Search S26 (Last 30 Days)</button>
+            <button class="btn-secondary" id="searchA37Btn">Search A37/A57 (Last 30 Days)</button>
+            <button class="btn-primary" id="copyToSheetsBtn" style="display:none; margin-left: auto; background-color: var(--green); border-color: var(--green);">📋 Copy to Sheets</button>
+          </div>
+          <div class="lead-custom-search">
+            <input type="text" id="leadSearchInput" class="url-input" placeholder="Or type a custom Reddit search query...">
+            <button class="btn-fetch" id="leadSearchBtn">Search</button>
+          </div>
+          <div style="margin-top: 8px; text-align: left; padding-left: 5px;">
+            <label style="color: var(--text-2); font-size: 0.9em; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="checkbox" id="intentFilterCheckbox" checked>
+              Filter for buying intent & comparisons
+            </label>
+          </div>
+          <div id="leadLoading" class="msg-loading" style="display:none; margin-top: 10px;">
+            <span class="spin"></span> Searching Reddit...
+          </div>
+          <div id="leadError" class="msg-error" style="display:none; margin-top: 10px;"></div>
+        </div>
+        <div class="lead-results-area" id="leadResults">
+          <div class="empty-state" style="margin-top: 40px;">
+            <div class="empty-icon">🔍</div>
+            <p>Click a search button above to find leads with buying intent.</p>
+          </div>
+        </div>
+      </div> <!-- /tab-leads -->
+
+      <!-- TAB: AI FILTER STUDIO -->
+      <div id="tab-filter" class="tab-content">
+        <section class="step-card">
+          <div class="step-num step-num-accent">✨</div>
+          <div class="step-body">
+            <h2 class="step-title">Paste Raw Data</h2>
+            <p class="step-desc">Paste the raw CSV data from the Lead Finder (or your clipboard) below to let Claude filter out the noise.</p>
+            <textarea id="filterInput" class="context-ta" rows="8" placeholder="Title	URL	Upvotes	Comments	Date&#10;..."></textarea>
+            <div class="batch-btns" style="margin-top: 15px;">
+              <button class="btn-generate" id="startFilterBtn">✦ Start AI Filter</button>
+            </div>
+          </div>
+        </section>
+        
+        <section class="step-card" id="filterProgressCard" style="display: none;">
+          <div class="step-num">⚙</div>
+          <div class="step-body">
+            <h2 class="step-title">Processing...</h2>
+            <div style="display:flex; justify-content: space-between; margin-bottom: 5px;">
+              <span id="filterProgressText" style="color: var(--text-2);">0 / 0 Processed</span>
+              <span id="filterAcceptedText" style="color: var(--green); font-weight: bold;">0 Accepted</span>
+            </div>
+            <div style="width: 100%; background: var(--bg-1); height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
+              <div id="filterProgressBar" style="height: 100%; width: 0%; background: var(--blue); transition: width 0.3s;"></div>
+            </div>
+            <div id="filterCurrentPost" style="margin-top: 10px; font-size: 0.9em; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+          </div>
+        </section>
+
+        <section class="step-card" id="filterResultsCard" style="display: none;">
+          <div class="step-num">★</div>
+          <div class="step-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h2 class="step-title">Golden Leads (Score 4 & 5)</h2>
+              <button class="btn-primary" id="exportFilteredBtn" style="background-color: var(--green); border-color: var(--green);">📋 Copy to Google Sheets</button>
+            </div>
+            <div class="lead-results-area" id="filterResultsArea" style="max-height: 500px; overflow-y: auto;">
+              <!-- Results will be injected here -->
+            </div>
+          </div>
+        </section>
+      </div> <!-- /tab-filter -->
+
+    </main>
+
+    <!-- ── RIGHT: QUALITY PANEL ── -->
+    <aside class="quality-panel">
+      <div class="qp-card">
+        <h3 class="qp-title">Comment Quality</h3>
+        <div id="qaSummary" class="qa-badge">No comment selected</div>
+        <div id="qaList" class="qa-list"></div>
+      </div>
+
+      <div class="qp-card">
+        <h3 class="qp-title">Quick Templates</h3>
+        <div id="templateList" class="template-list"></div>
+      </div>
+
+      <div class="qp-card">
+        <h3 class="qp-title">Angle Coverage</h3>
+        <div id="angleBars" class="angle-bars"></div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ══ TRACKER ══ -->
+  <div class="tracker-wrap">
+    <div class="tracker-card">
+      <div class="tracker-hdr">
+        <h2>All Posts <span id="trackerCount" class="tracker-badge">0</span></h2>
+        <div class="tracker-hdr-right">
+          <button class="hdr-btn" id="nextUnreviewedBtn">Next to Review</button>
+          <input type="text" id="searchInput" class="hp-search" placeholder="Search tracker…" style="width:200px;">
+        </div>
+      </div>
+      <div class="tracker-scroller">
+        <table class="tracker-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Platform</th>
+              <th>Post</th>
+              <th>Topic</th>
+              <th>Owner</th>
+              <th>Status</th>
+              <th>Comments</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="trackerBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS MODAL ══ -->
+  <div class="modal-overlay" id="settingsOverlay" style="display:none;"></div>
+  <div class="modal-panel" id="settingsPanel" style="display:none;">
+    <div class="modal-hdr">
+      <h2>Settings</h2>
+      <button class="modal-close" id="settingsCloseBtn">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="flbl">Daily Target</label>
+      <input type="number" id="dailyTargetInput" min="1" max="100" value="10" class="meta-inp">
+    </div>
+    <div class="form-group">
+      <label class="flbl">Your Name</label>
+      <input type="text" id="userNameInput" placeholder="Name or initials" class="meta-inp">
+    </div>
+    <div class="form-group">
+      <label class="flbl">App Passcode</label>
+      <input type="password" id="passcodeInput" placeholder="If required" class="meta-inp">
+    </div>
+    <div class="form-group">
+      <label class="flbl">Import JSON</label>
+      <label class="import-label">Choose File<input id="importJsonInput" type="file" accept=".json"></label>
+    </div>
+    <button class="btn-danger" id="clearAllBtn">Delete All Posts</button>
+  </div>
+
+  <!-- ══ TOAST ══ -->
+  <div id="toast" class="toast"></div>
 
   <!-- hidden inputs that app.js reads for the data model -->
   <form id="workForm" style="display:none;">
   </form>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
