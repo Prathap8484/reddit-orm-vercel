@@ -46,15 +46,21 @@ Context/Comments: ${rawContext}
   try {
     const apiEndpoint = `https://api.anthropic.com/v1/messages`;
     
+    const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
     const payload = {
-      model: "claude-3-5-sonnet-20240620",
+      model,
       max_tokens: 250,
       system: selectedPrompt,
-      temperature: 0.9,
       messages: [
         { role: "user", content: inputData }
       ]
     };
+    if (!/^claude-(fable|mythos|opus|sonnet)-5/.test(model)) {
+      payload.temperature = 0.9;
+    } else {
+      payload.output_config = { effort: "low" };
+      payload.thinking = { type: "disabled" };
+    }
 
     const response = await fetch(apiEndpoint, {
       method: "POST",

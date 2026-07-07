@@ -1067,18 +1067,16 @@ async function renderCommentStudio(postOverride = null) {
   studio.innerHTML = COMMENT_LABELS.map((label, index) => `
     <div class="comment-card" data-slot="${index}">
       <div class="comment-card-header">
-        <div class="comment-card-title">${escapeHtml(label)}</div>
+        <div class="comment-label">${escapeHtml(label)}</div>
+        <button type="button" class="comment-copy-btn btn-copy">Copy</button>
       </div>
       <textarea class="comment-textarea" placeholder="Comment will appear here after generation..."></textarea>
-      <div class="comment-card-footer">
+      <div class="comment-footer">
         <span class="char-count">0 chars</span>
-        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; margin-left: auto;">
+        <label class="final-radio-label" style="margin-left: auto;">
           <input type="radio" name="final-comment" value="${index}" class="final-comment-radio" />
           Mark as final
         </label>
-      </div>
-      <div class="comment-card-actions">
-        <button type="button" class="btn-copy">Copy</button>
       </div>
     </div>
   `).join("");
@@ -1517,7 +1515,7 @@ function renderAngleBars() {
 
 function renderTemplates() {
   $("templateList").innerHTML = reusableTemplates.map((template, index) => `
-    <button type="button" class="template-button" data-template="${index}">
+    <button type="button" class="template-btn" data-template="${index}">
       <strong>${escapeHtml(template.label)}</strong>
       <span>${escapeHtml(template.text.slice(0, 40))}...</span>
     </button>
@@ -1934,6 +1932,9 @@ function init() {
         trackUserFeedback("skip");
         toast("Post isn't relevant to Samsung A37/A57 — no comments generated.");
       } else if (comments.length > 0) {
+        if (!document.querySelector(".comment-card")) {
+          await renderCommentStudio(post);
+        }
         comments.forEach((text, i) => setCommentValue(i, text));
         toast(replyMode ? "Replies generated." : "Comments generated. Pick the best one!");
       } else {
@@ -2032,7 +2033,7 @@ function init() {
   });
 
   // ── Tabs ─────────────────────────────────────────────────────────
-  const tabs = document.querySelectorAll(".nav-item");
+  const tabs = document.querySelectorAll(".nav-tab");
   const tabContents = document.querySelectorAll(".tab-content");
   
   const switchTab = (tabId) => {
