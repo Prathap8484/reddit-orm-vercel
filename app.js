@@ -909,14 +909,14 @@ function buildRedditJsonUrl(input) {
   if (host === "redd.it") {
     const id = url.pathname.split("/").filter(Boolean)[0];
     if (!id) throw new Error("Could not extract post ID from redd.it link.");
-    return `https://www.reddit.com/comments/${id}.json?raw_json=1`;
+    return `https://corsproxy.io/?${encodeURIComponent(`https://www.reddit.com/comments/${id}.json?raw_json=1`)}`;
   }
   if (!host.endsWith("reddit.com")) throw new Error("Only Reddit post URLs are supported.");
   url.search = ""; url.hash = "";
   let pathname = url.pathname.replace(/\/$/, "");
   if (!pathname.includes("/comments/")) throw new Error("Use a Reddit post URL that contains /comments/.");
   if (!pathname.endsWith(".json")) pathname += ".json";
-  return `https://www.reddit.com${pathname}?raw_json=1`;
+  return `https://corsproxy.io/?${encodeURIComponent(`https://www.reddit.com${pathname}?raw_json=1`)}`;
 }
 
 function cleanRedditText(value, limit = 700) {
@@ -2032,7 +2032,7 @@ function init() {
   });
 
   // ── Tabs ─────────────────────────────────────────────────────────
-  const tabs = document.querySelectorAll(".nav-tab");
+  const tabs = document.querySelectorAll(".nav-item");
   const tabContents = document.querySelectorAll(".tab-content");
   
   const switchTab = (tabId) => {
@@ -2041,7 +2041,9 @@ function init() {
   };
   
   tabs.forEach(tab => {
-    tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+    if (tab.dataset.tab) {
+      tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+    }
   });
 
   // ── Lead Finder ──────────────────────────────────────────────────

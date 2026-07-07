@@ -23,11 +23,11 @@ function normalizeRedditUrl(input) {
 
   const host = url.hostname.toLowerCase();
 
-  // Shortlink: https://redd.it/abc123
   if (host === "redd.it") {
     const id = url.pathname.split("/").filter(Boolean)[0];
     if (!id) throw new Error("Could not extract post ID from redd.it link.");
-    return `https://www.reddit.com/comments/${id}.json?raw_json=1`;
+    const redditUrl = `https://www.reddit.com/comments/${id}.json?raw_json=1`;
+    return `https://api.allorigins.win/raw?url=${encodeURIComponent(redditUrl)}`;
   }
 
   if (!host.endsWith("reddit.com")) {
@@ -44,7 +44,8 @@ function normalizeRedditUrl(input) {
   }
 
   if (!pathname.endsWith(".json")) pathname += ".json";
-  return `https://www.reddit.com${pathname}?raw_json=1`;
+  const redditUrl = `https://www.reddit.com${pathname}?raw_json=1`;
+  return `https://api.allorigins.win/raw?url=${encodeURIComponent(redditUrl)}`;
 }
 
 /** Clean and truncate text for safe display. */
