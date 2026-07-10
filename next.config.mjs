@@ -12,7 +12,9 @@ const nextConfig = {
     resolveAlias: {
       './schema.js': './schema.ts',
       '../src/db/index.js': '../src/db/index.ts',
-      '../src/db/schema.js': '../src/db/schema.ts'
+      '../src/db/schema.js': '../src/db/schema.ts',
+      '../../src/db/index.js': '../../src/db/index.ts',
+      '../../src/db/schema.js': '../../src/db/schema.ts'
     }
   }
 };
