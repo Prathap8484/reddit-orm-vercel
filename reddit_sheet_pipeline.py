@@ -3,18 +3,21 @@ import csv
 import json
 import time
 import requests
-from datetime import datetime
+import random
+from datetime import datetime, timedelta
 import anthropic
 
 # Initialize Anthropic Client
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-# Define Prompts and Schemas (Load the text blocks from above here)
-A37_A57_PERSONA_PROMPT = """[SYSTEM ROLE]
+BASE_TARGET_URL = "https://scriptio.in/samsung-review"
+
+# Define Personas
+CYNIC_PERSONA = """[SYSTEM ROLE]
 You are a cynical, exhausted, hyper-opinionated senior systems engineer browsing Reddit on your phone while lying in bed. You do not use formal grammar. You despise corporate marketing, you hate AI-generated text, and you hold strong, biased opinions about tech hardware.
 
 [YOUR OBJECTIVE]
-Take the raw, poorly-spun input text, extract the core product stance, and rewrite it into a single, highly authentic, biometrically flawed Reddit comment defending or recommending the Samsung Galaxy A37 or A57.
+Take the raw, poorly-spun input text, extract the core product stance, and rewrite it into a single, highly authentic, biometrically flawed Reddit comment defending or recommending the {model_tier}.
 
 [STRICT LEXICAL, STRUCTURAL & OPSEC CONSTRAINTS]
 1. THE FORBIDDEN LEXICON: Never use: delve, vital, crucial, tapestry, beacon, foster, elevate, streamline, seamless, game-changer, look no further, testament, furthermore, moreover, ultimately, overall, in conclusion, subjective, objective.
@@ -29,28 +32,52 @@ Take the raw, poorly-spun input text, extract the core product stance, and rewri
    - Absolute Lowercase Start: The very first letter MUST be strictly lowercase.
    - Contraction Starvation: Strip apostrophes ("dont", "cant", "im", "doesnt").
    - Dropped Terminal Stop: Never put a period at the end of the final sentence.
-   - The Uncorrected Fat-Finger: Deliberately introduce exactly ONE simulated mobile QWERTY typo by hitting an adjacent letter. STRICT EXCEPTION: NEVER introduce typos into brand names (Samsung), product models (A57, A37), or numerical specifications (5000mAh, 45W). Only inject typos into stop words or adjectives."""
+   - The Uncorrected Fat-Finger: Deliberately introduce exactly ONE simulated mobile QWERTY typo by hitting an adjacent letter. STRICT EXCEPTION: NEVER introduce typos into brand names (Samsung, Apple), product models (A57, A37, S26, S23U, iPhone), or numerical specifications (5000mAh, 45W). Only inject typos into stop words or adjectives."""
 
-S26_PERSONA_PROMPT = """[SYSTEM ROLE]
-You are a cynical, exhausted, hyper-opinionated senior systems engineer browsing Reddit on your phone while lying in bed. You do not use formal grammar. You despise corporate marketing, you hate AI-generated text, and you hold strong, biased opinions about tech hardware.
+RELUCTANT_PERSONA = """[SYSTEM ROLE]
+You are a reluctant upgrader who hates spending money. You kept your old phone for 4+ years and you despise the modern smartphone cycle. You only upgrade when absolutely necessary. 
 
 [YOUR OBJECTIVE]
-Take the raw, poorly-spun input text, extract the core product stance, and rewrite it into a single, highly authentic, biometrically flawed Reddit comment defending or recommending the Samsung Galaxy S26.
+Take the raw, poorly-spun input text, extract the core product stance, and rewrite it into a Reddit comment where you grudgingly admit the {model_tier} is actually worth it, despite your cheap nature.
 
 [STRICT LEXICAL, STRUCTURAL & OPSEC CONSTRAINTS]
-1. THE FORBIDDEN LEXICON: Never use: delve, vital, crucial, tapestry, beacon, foster, elevate, streamline, seamless, game-changer, look no further, testament, furthermore, moreover, ultimately, overall, in conclusion, subjective, objective.
-2. ASYMMETRICAL CADENCE: Sentence lengths must be wildly erratic. A sprawling, 25-word run-on must be followed by a sentence of 5 words or less.
-3. CONJUNCTION DECAPITATION: Never open a paragraph or a sentence with a transition adverb. 
-4. SUBJECTIVE ANCHORING (E-E-A-T PATCH): You may use the word "phone" or "device" EXACTLY ONCE in your first sentence to establish context. After that, strictly classify it as a "slab," a "premium brick," a "daily driver," a "camera rig," or a "titanium heater."
-5. THE TRIBAL STANCE: Pick the winner, declare the alternative a waste of money (specifically target iOS or older Ultras), and stop typing abruptly. 
-6. BRAND SAFETY GUARDRAIL: Attack the hardware, never the user. Be cynical, but never insult the Original Poster (OP) or use toxic hostility.
-7. UNICODE LAZINESS: No Em-Dashes ("—"). Use lazy commas (",") or double-hyphens ("--").
-8. PHONETIC MARKOV SAFEGUARDS: Never drop the "n" from "an" before a vowel sound (e.g., maintain "an update"). 
-9. BIOMETRIC DE-OPTIMIZATION: 
-   - Absolute Lowercase Start: The very first letter MUST be strictly lowercase.
+1. THE FORBIDDEN LEXICON: Never use: delve, vital, crucial, tapestry, beacon, foster, elevate, streamline, seamless, game-changer, look no further, testament, furthermore, moreover, ultimately, overall, in conclusion.
+2. TONE: Complaining about price inflation, but conceding this specific model is a rare exception that justifies the cost.
+3. BRAND SAFETY GUARDRAIL: Attack the smartphone market, never the user. Never insult the OP.
+4. BIOMETRIC DE-OPTIMIZATION:
    - Contraction Starvation: Strip apostrophes ("dont", "cant", "im", "doesnt").
    - Dropped Terminal Stop: Never put a period at the end of the final sentence.
-   - The Uncorrected Fat-Finger: Deliberately introduce exactly ONE simulated mobile QWERTY typo by hitting an adjacent letter. STRICT EXCEPTION: NEVER introduce typos into brand names (Samsung, Apple), product models (S26, S23U, iPhone), or numerical specs. Only inject typos into stop words or adjectives."""
+   - The Uncorrected Fat-Finger: Deliberately introduce exactly ONE simulated mobile QWERTY typo by hitting an adjacent letter. STRICT EXCEPTION: NEVER introduce typos into brand names or numerical specs."""
+
+SPEC_PURIST_PERSONA = """[SYSTEM ROLE]
+You are a spec purist and engineering nerd. You completely ignore marketing jargon, aesthetics, and brand loyalty. You only care about thermal throttling, sustained workloads, battery cycle degradation, and SoC efficiency.
+
+[YOUR OBJECTIVE]
+Take the raw, poorly-spun input text and rewrite it into a highly technical Reddit comment recommending the {model_tier} strictly based on its engineering merits.
+
+[STRICT LEXICAL, STRUCTURAL & OPSEC CONSTRAINTS]
+1. THE FORBIDDEN LEXICON: Never use: delve, vital, crucial, tapestry, beacon, foster, elevate, streamline, seamless, game-changer, look no further, testament.
+2. TONE: Clinical, data-driven, slightly condescending to people who buy phones for the "cameras."
+3. BRAND SAFETY GUARDRAIL: Focus strictly on the hardware metrics. Never insult the OP.
+4. BIOMETRIC DE-OPTIMIZATION:
+   - Use technical abbreviations (SoC, throttling, mAh) correctly, but keep general typing slightly messy as if typed quickly on a mobile keyboard.
+   - Contraction Starvation: Strip apostrophes ("dont", "cant").
+   - STRICT EXCEPTION: NEVER introduce typos into brand names or numerical specs."""
+
+PERSONAS = {
+    "Cynic": {
+        "prompt": CYNIC_PERSONA,
+        "utm": "?utm_source=reddit&utm_medium=organic_orm&utm_campaign=cynic_persona"
+    },
+    "Reluctant Upgrader": {
+        "prompt": RELUCTANT_PERSONA,
+        "utm": "?utm_source=reddit&utm_medium=organic_orm&utm_campaign=reluctant_persona"
+    },
+    "Spec Purist": {
+        "prompt": SPEC_PURIST_PERSONA,
+        "utm": "?utm_source=reddit&utm_medium=organic_orm&utm_campaign=spec_purist_persona"
+    }
+}
 
 TOOL_SCHEMA = {
   "name": "evaluate_and_draft_reddit_response",
@@ -105,9 +132,9 @@ def smart_truncate(text, max_length=2000):
     return text[:half] + "\n\n...[TRUNCATED_BY_PIPELINE]...\n\n" + text[-half:]
 
 def fetch_reddit_data(query):
-    """Resilience Patch: Uses the public JSON endpoint instead of scraping HTML DOM."""
+    """Resilience Patch: Uses public JSON endpoint, patched for 3-month time filter."""
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-    url = f"https://www.reddit.com/search.json?q={query}&sort=new&t=month&limit=100"
+    url = f"https://www.reddit.com/search.json?q={query}&sort=new&t=year&limit=100"
     
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
@@ -117,17 +144,24 @@ def fetch_reddit_data(query):
     data = response.json()
     posts = []
     
+    # 90-day cutoff logic
+    three_months_ago = datetime.now() - timedelta(days=90)
+    
     for child in data.get('data', {}).get('children', []):
         post_data = child['data']
-        posts.append({
-            'title': post_data.get('title', ''),
-            'url': f"https://www.reddit.com{post_data.get('permalink', '')}",
-            'selftext': smart_truncate(post_data.get('selftext', '')),
-            'upvotes': post_data.get('score', 0),
-            'comments': post_data.get('num_comments', 0),
-            'date': datetime.fromtimestamp(post_data.get('created_utc', 0)).strftime('%Y-%m-%d')
-        })
+        post_date = datetime.fromtimestamp(post_data.get('created_utc', 0))
         
+        # Enforce exact 3-month (90 days) rule
+        if post_date >= three_months_ago:
+            posts.append({
+                'title': post_data.get('title', ''),
+                'url': f"https://www.reddit.com{post_data.get('permalink', '')}",
+                'selftext': smart_truncate(post_data.get('selftext', '')),
+                'upvotes': post_data.get('score', 0),
+                'comments': post_data.get('num_comments', 0),
+                'date': post_date.strftime('%Y-%m-%d')
+            })
+            
     return posts
 
 def pass_1_evaluate_and_draft(title, selftext):
@@ -147,21 +181,25 @@ def pass_1_evaluate_and_draft(title, selftext):
     return response.content[0].input
 
 def pass_2_apply_persona(drafted_comment, model_tier):
-    """Persona Rewriter: Applies biometric de-optimization based on device tier."""
-    system_prompt = S26_PERSONA_PROMPT if model_tier == "Samsung Galaxy S26" else A37_A57_PERSONA_PROMPT
+    """Persona Rewriter: Applies biometric de-optimization based on device tier and random persona."""
+    persona_name, persona_data = random.choice(list(PERSONAS.items()))
+    system_prompt = persona_data["prompt"].format(model_tier=model_tier)
+    target_url = BASE_TARGET_URL + persona_data["utm"]
+    
+    user_instruction = f"Rewrite this comment.\nYou MUST organically include this exact link in your response: {target_url}\n\nDrafted comment to rewrite:\n{drafted_comment}"
     
     try:
         response = client.messages.create(
             model="claude-3-haiku-20240307",
             max_tokens=400,
-            temperature=0.45, # Safety Patch: Lowered from 0.85 to prevent toxic drift
+            temperature=0.45,
             system=system_prompt,
-            messages=[{"role": "user", "content": f"Rewrite this comment:\n{drafted_comment}"}]
+            messages=[{"role": "user", "content": user_instruction}]
         )
-        return response.content[0].text.strip()
+        return response.content[0].text.strip(), persona_name
     except Exception as e:
         print(f"Persona rewrite failed, falling back to clean draft: {e}")
-        return drafted_comment # Graceful Fallback
+        return drafted_comment, "Fallback"
 
 def run_pipeline():
     queries = [
@@ -174,7 +212,7 @@ def run_pipeline():
     
     with open(output_file, 'w', newline='', encoding='utf-8-sig') as f:
         writer = csv.writer(f, delimiter='\t')
-        writer.writerow(['Title', 'URL', 'Comment', 'Upvotes', 'Total Comments', 'Date'])
+        writer.writerow(['Title', 'URL', 'Comment', 'Upvotes', 'Total Comments', 'Date', 'Persona_Type'])
         
         for query in queries:
             print(f"--- Sweeping Reddit JSON for {query} ---")
@@ -191,7 +229,7 @@ def run_pipeline():
                     print(f"   -> ACCEPTED ({evaluation['recommended_model']}) - Score: {evaluation['total_score']}/10")
                     
                     # Run Pass 2
-                    final_comment = pass_2_apply_persona(evaluation['drafted_comment'], evaluation['recommended_model'])
+                    final_comment, persona_type = pass_2_apply_persona(evaluation['drafted_comment'], evaluation['recommended_model'])
                     
                     # Write to TSV
                     writer.writerow([
@@ -200,7 +238,8 @@ def run_pipeline():
                         final_comment, 
                         post['upvotes'], 
                         post['comments'], 
-                        post['date']
+                        post['date'],
+                        persona_type
                     ])
                     f.flush() # Ensure it writes immediately
                 else:
