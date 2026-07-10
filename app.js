@@ -1,4 +1,4 @@
-﻿const options = {
+const options = {
   devices: ["A57", "A37", "Both"],
   topics: ["Buying advice", "Comparison", "Camera", "Battery", "Performance", "Price/value", "Launch/speculation", "Complaint", "General A-series"],
   angles: ["Battery", "Display", "Software updates", "Camera", "Price/value", "Reliability", "Samsung ecosystem", "Service availability"],
@@ -909,14 +909,14 @@ function buildRedditJsonUrl(input) {
   if (host === "redd.it") {
     const id = url.pathname.split("/").filter(Boolean)[0];
     if (!id) throw new Error("Could not extract post ID from redd.it link.");
-    return `https://corsproxy.io/?${encodeURIComponent(`https://www.reddit.com/comments/${id}.json?raw_json=1`)}`;
+    return `/reddit-proxy/comments/${id}.json?raw_json=1`;
   }
   if (!host.endsWith("reddit.com")) throw new Error("Only Reddit post URLs are supported.");
   url.search = ""; url.hash = "";
   let pathname = url.pathname.replace(/\/$/, "");
   if (!pathname.includes("/comments/")) throw new Error("Use a Reddit post URL that contains /comments/.");
   if (!pathname.endsWith(".json")) pathname += ".json";
-  return `https://corsproxy.io/?${encodeURIComponent(`https://www.reddit.com${pathname}?raw_json=1`)}`;
+  return `/reddit-proxy${pathname}?raw_json=1`;
 }
 
 function cleanRedditText(value, limit = 700) {
@@ -1018,25 +1018,19 @@ async function fetchContext() {
     loadingEl.style.display = "block";
     $("fetchBtn").disabled = true;
     try {
-      // Try the app server first. Public browser CORS proxies often return 522s.
+      // Try the Next.js proxy or corsproxy fallback directly via scrapeRedditPost
       let payload = null;
       try {
-        const passcode = localStorage.getItem("appPasscode") || "";
-        const r = await fetch(`${apiBase}/api/reddit`, {
-          method: "POST",
-          headers: { "content-type": "application/json", "x-app-password": passcode },
-          body: JSON.stringify({ url }),
-        });
-        const serverPayload = await r.json();
-        if (!r.ok) throw new Error(serverPayload.error || `Could not reach Reddit (${r.status}). Try pasting the post text manually.`);
-        payload = serverPayload;
-      } catch (serverErr) {
-        try {
-          payload = await scrapeRedditPost(url);
-          payload.comments = (payload.topCommentTexts || []).map(t => ({ body: t }));
-        } catch {
-          payload = buildBlockedRedditFallback(url, serverErr.message);
-          if (!payload) throw serverErr;
+        payload = await scrapeRedditPost(url);
+        payload.comments = (payload.topCommentTexts || []).map(t => ({ body: t }));
+      } catch (err) {
+        payload = buildBlockedRedditFallback(url, err.message);
+        if (!payload) {
+          errorEl.textContent = err.message;
+          errorEl.style.display = "block";
+          loadingEl.style.display = "none";
+          $("fetchBtn").disabled = false;
+          return;
         }
       }      scrapedTitle = payload.title || "";
       scrapedSelftext = payload.selftext || "";
@@ -2099,14 +2093,13 @@ function init() {
     try {
       let res;
       try {
-        const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(finalQuery)}&sort=new&t=month&limit=100`;
+        const url = `/reddit-proxy/search.json?q=${encodeURIComponent(finalQuery)}&sort=new&t=month&limit=100`;
         res = await fetch(url);
-        if (!res.ok) throw new Error("CORS");
+        if (!res.ok) throw new Error("Next.js proxy failed");
       } catch (err) {
-        // Fallback to server proxy
-        const proxyUrl = `${apiBase}/api/reddit-search?q=${encodeURIComponent(finalQuery)}`;
-        const passcode = localStorage.getItem("appPasscode") || "";
-        res = await fetch(proxyUrl, { headers: { "x-app-password": passcode } });
+        // Fallback to corsproxy.io client-side proxy
+        const fallbackUrl = `https://corsproxy.io/?${encodeURIComponent(`https://www.reddit.com/search.json?q=${encodeURIComponent(finalQuery)}&sort=new&t=month&limit=100`)}`;
+        res = await fetch(fallbackUrl);
       }
       if (!res.ok) throw new Error(`Reddit returned ${res.status}`);
       const data = await res.json();
