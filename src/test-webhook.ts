@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 // TODO: Replace this placeholder with your actual Vercel project domain URL
-const VERCEL_URL = "https://YOUR-PROJECT-DOMAIN.vercel.app/api/sweep";
+const VERCEL_URL = "https://reddit-orm-vercel.vercel.app/api/sweep";
 
 async function testWebhook() {
   console.log(`Starting webhook test against: ${VERCEL_URL}`);
