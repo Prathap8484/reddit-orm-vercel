@@ -1,7 +1,7 @@
 import { db } from '../src/db/index.js';
 import * as schema from '../src/db/schema.js';
 import { desc } from 'drizzle-orm';
-import SentimentChart from './components/SentimentChart';
+import SentimentChart from './components/SentimentChart.js';
 
 export const dynamic = 'force-dynamic';
 
