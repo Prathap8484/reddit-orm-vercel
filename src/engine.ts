@@ -3,10 +3,21 @@ import * as cheerio from "cheerio";
 import { db } from "./db/index.js";
 import { clients, personas, logs } from "./db/schema.js";
 import { eq, inArray } from "drizzle-orm";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 const API_KEY = process.env.ANTHROPIC_API_KEY;
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20240620";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+
+function getRedditFetchOptions() {
+  const options: any = { headers: { "user-agent": UA } };
+  if (process.env.PROXY_URL) {
+    const agent = new HttpsProxyAgent(process.env.PROXY_URL);
+    options.agent = agent;
+    options.dispatcher = agent;
+  }
+  return options;
+}
 
 if (!API_KEY) {
   console.error("Error: ANTHROPIC_API_KEY environment variable is not set.");
@@ -34,7 +45,7 @@ async function fetchSubredditLinks(subreddit: string): Promise<string[]> {
   const url = `https://old.reddit.com/r/${subreddit}/new/`;
   try {
     console.log(`    -> Fetching thread list from ${url}`);
-    const res = await fetch(url, { headers: { "user-agent": UA } });
+    const res = await fetch(url, getRedditFetchOptions());
     
     if (!res.ok) {
       console.warn(`    ⚠️ Failed to fetch r/${subreddit}: ${res.status}`);
@@ -80,7 +91,7 @@ function normalizeRedditUrl(url: string) {
 async function fetchRedditContext(permalink: string) {
   const url = normalizeRedditUrl(permalink);
   try {
-    const res = await fetch(url, { headers: { "user-agent": UA } });
+    const res = await fetch(url, getRedditFetchOptions());
     if (!res.ok) return { selftext: "", topComments: "" };
     const html = await res.text();
     const $ = cheerio.load(html);
