@@ -164,7 +164,12 @@ def pass_2_apply_persona(drafted_comment, model_tier):
         return drafted_comment # Graceful Fallback
 
 def run_pipeline():
-    queries = ["Samsung S26", "Samsung A57", "Samsung A37"]
+    queries = [
+        "Samsung upgrade advice",
+        "best mid range phone 2026",
+        "Galaxy A series worth it",
+        "buy Samsung Galaxy"
+    ]
     output_file = 'output.tsv'
     
     with open(output_file, 'w', newline='', encoding='utf-8-sig') as f:
