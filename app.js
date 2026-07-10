@@ -1,4 +1,4 @@
-const options = {
+﻿const options = {
   devices: ["A57", "A37", "Both"],
   topics: ["Buying advice", "Comparison", "Camera", "Battery", "Performance", "Price/value", "Launch/speculation", "Complaint", "General A-series"],
   angles: ["Battery", "Display", "Software updates", "Camera", "Price/value", "Reliability", "Samsung ecosystem", "Service availability"],
@@ -31,7 +31,7 @@ const storeKey = "samsungRedditOrmWorkbench.v2";
 const recentPhrasesKey = "orm_recent_openings";
 const apiBase = window.location.protocol === "file:" ? "http://127.0.0.1:4180" : "";
 let currentPostIsIrrelevant = false;
-// Scraped post fields — set when fetching, restored when loading from queue
+// Scraped post fields â€” set when fetching, restored when loading from queue
 let scrapedTitle = "";
 let scrapedSelftext = "";
 let scrapedTopComments = [];
@@ -127,7 +127,7 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-// ─── Phase 5: Operational Humanization ────────────────────────────────────────
+// â”€â”€â”€ Phase 5: Operational Humanization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const weeklyBiasKey    = "orm_weekly_mood_bias";
 const dailyBiasKey     = "orm_daily_writing_bias";
@@ -230,12 +230,12 @@ function computeAccountBehaviorRisk() {
   return warnings.length ? `Behavior risk: ${warnings.join(", ")}. Consider skipping upcoming posts.` : null;
 }
 
-// ─── Phase 6: Long-Term Operational Realism ───────────────────────────────────
+// â”€â”€â”€ Phase 6: Long-Term Operational Realism â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ACCOUNT_PROFILE_KEY = "orm_account_profile";
 const MOOD_HISTORY_KEY    = "orm_mood_history";
 
-// Session-level tracking — resets on page reload
+// Session-level tracking â€” resets on page reload
 let _sessionCommentCount = 0;
 let _sessionStartTs      = Date.now();
 
@@ -314,7 +314,7 @@ function applyTemporalDrift(profile) {
   const lvl = ["low", "medium", "high"];
   const affinities = ["skeptical", "neutral", "familiar"];
 
-  // Drift samsungAffinity ±1 step (opinion instability)
+  // Drift samsungAffinity Â±1 step (opinion instability)
   const aIdx = affinities.indexOf(mutated.samsungAffinity || "neutral");
   if (Math.random() < 0.4) {
     mutated.samsungAffinity = affinities[Math.max(0, Math.min(2, aIdx + (Math.random() < 0.5 ? -1 : 1)))] || "neutral";
@@ -416,8 +416,8 @@ function saveMoodToHistory(mood) {
 
 function getPostingWindowAdvice(profile) {
   const windows = {
-    night_owl:    "Best posting window: 10PM–2AM. Avoid 9AM–5PM blocks.",
-    office_hours: "Best posting window: 12–2PM or 5–7PM.",
+    night_owl:    "Best posting window: 10PMâ€“2AM. Avoid 9AMâ€“5PM blocks.",
+    office_hours: "Best posting window: 12â€“2PM or 5â€“7PM.",
     weekend_only: "Best posting window: Saturday/Sunday afternoons.",
     irregular:    null,
   };
@@ -429,7 +429,7 @@ function shouldUseReactionMode(fatigue, clustering) {
   return Math.random() < (0.10 + fatigue * 0.15 + clustering * 0.10);
 }
 
-// ─── Phase 7: Multi-Account Population Simulation ─────────────────────────────
+// â”€â”€â”€ Phase 7: Multi-Account Population Simulation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ACCOUNT_ARCHETYPES = [
   "casual_samsung_user",
@@ -453,7 +453,7 @@ const LANGUAGE_QUIRKS_POOL = [
   "hedges_always",
 ];
 
-// Staggered opinion distribution — not all accounts like Samsung equally
+// Staggered opinion distribution â€” not all accounts like Samsung equally
 const SENTIMENT_TIERS = [
   { tier: "mildly_skeptical",  weight: 0.20 },
   { tier: "neutral_positive",  weight: 0.40 },
@@ -570,7 +570,7 @@ function getArchetypeTraitContext(archetypeId) {
   return traitMap[archetypeId] || "";
 }
 
-// ─── Phase 8: Generation Telemetry & Subreddit Calibration ───────────────────
+// â”€â”€â”€ Phase 8: Generation Telemetry & Subreddit Calibration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const TELEMETRY_KEY = "orm_telemetry";
 const SUB_CALIB_KEY = "orm_sub_calib";
@@ -661,7 +661,7 @@ function getPopulationHealth() {
       omissionRate: Math.round(avg(recent.map(e => e.omission)) * 100),
       reactionRate: Math.round(avg(recent.map(e => e.reaction)) * 100),
       avgLen:       Math.round(avg(recent.map(e => e.avgLen))),
-      topSub:       topEntry ? topEntry[0] : "—",
+      topSub:       topEntry ? topEntry[0] : "â€”",
       topSubRatio:  topEntry ? Math.round(topEntry[1] / recent.length * 100) : 0,
     };
   } catch { return null; }
@@ -677,8 +677,8 @@ function toast(message) {
 
 function stripDashes(text) {
   return String(text || "")
-    .replace(/\s*—\s*/g, ", ")
-    .replace(/\s*–\s*/g, ", ")
+    .replace(/\s*â€”\s*/g, ", ")
+    .replace(/\s*â€“\s*/g, ", ")
     .replace(/,,+/g, ",");
 }
 
@@ -926,13 +926,46 @@ function cleanRedditText(value, limit = 700) {
     .trim().slice(0, limit);
 }
 
+function buildBlockedRedditFallback(url, reason = "") {
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  const parts = parsed.pathname.split("/").filter(Boolean);
+  const subredditIndex = parts.findIndex(part => part.toLowerCase() === "r");
+  const commentsIndex = parts.findIndex(part => part.toLowerCase() === "comments");
+  const subreddit = subredditIndex >= 0 && parts[subredditIndex + 1] ? `r/${parts[subredditIndex + 1]}` : inferSubreddit(url);
+  const slug = commentsIndex >= 0 && parts[commentsIndex + 2] ? parts[commentsIndex + 2] : "";
+  const title = slug
+    ? slug.replace(/[-_]+/g, " ").replace(/\b\w/g, char => char.toUpperCase())
+    : "Reddit post";
+  const permalink = `${parsed.origin}${parsed.pathname}`;
+  const note = reason ? `Fetch note: ${reason}` : "Fetch note: Reddit blocked automatic context fetching.";
+  return {
+    title,
+    subreddit,
+    selftext: "",
+    permalink,
+    comments: [],
+    context: [
+      `Subreddit: ${subreddit || "-"}`,
+      `Title: ${title}`,
+      note,
+      "Paste the post body or top comments here if you need a more specific reply.",
+    ].join("\n\n"),
+    degraded: true,
+  };
+}
+
 async function scrapeRedditPost(url) {
   const redditUrl = buildRedditJsonUrl(url);
   let response;
   try {
     response = await fetch(redditUrl, { headers: { accept: "application/json" } });
   } catch (err) {
-    throw new Error("Network error — check your connection and try again.");
+    throw new Error("Network error â€” check your connection and try again.");
   }
   if (!response.ok) {
     throw new Error(`Reddit returned ${response.status}. The post may be private or the URL may be wrong.`);
@@ -978,22 +1011,16 @@ async function fetchContext() {
       return;
     }
     if (!/reddit\.com|redd\.it/i.test(url)) {
-      errorEl.textContent = "Invalid URL — must be a reddit.com or redd.it link.";
+      errorEl.textContent = "Invalid URL â€” must be a reddit.com or redd.it link.";
       errorEl.style.display = "block";
       return;
     }
     loadingEl.style.display = "block";
     $("fetchBtn").disabled = true;
     try {
-      // Try client-side fetch first (browser has real cookies/UA, Reddit allows it).
-      // Fall back to server-side /api/reddit if CORS blocks it.
+      // Try the app server first. Public browser CORS proxies often return 522s.
       let payload = null;
       try {
-        payload = await scrapeRedditPost(url);
-        // scrapeRedditPost returns { title, subreddit, selftext, context, permalink, topCommentTexts }
-        payload.comments = (payload.topCommentTexts || []).map(t => ({ body: t }));
-      } catch (clientErr) {
-        // CORS or Reddit blocked client-side — try server route
         const passcode = localStorage.getItem("appPasscode") || "";
         const r = await fetch(`${apiBase}/api/reddit`, {
           method: "POST",
@@ -1003,15 +1030,22 @@ async function fetchContext() {
         const serverPayload = await r.json();
         if (!r.ok) throw new Error(serverPayload.error || `Could not reach Reddit (${r.status}). Try pasting the post text manually.`);
         payload = serverPayload;
-      }
-      scrapedTitle = payload.title || "";
+      } catch (serverErr) {
+        try {
+          payload = await scrapeRedditPost(url);
+          payload.comments = (payload.topCommentTexts || []).map(t => ({ body: t }));
+        } catch {
+          payload = buildBlockedRedditFallback(url, serverErr.message);
+          if (!payload) throw serverErr;
+        }
+      }      scrapedTitle = payload.title || "";
       scrapedSelftext = payload.selftext || "";
       scrapedTopComments = (payload.comments || []).map(c => c.body || c).filter(Boolean);
       $("subredditInput").textContent = payload.subreddit || inferSubreddit(url);
       $("contextInput").value = payload.context || "";
       if (payload.permalink) $("urlInput").value = payload.permalink;
       autoClassify();
-      toast("Reddit context fetched.");
+      toast(payload.degraded ? "Reddit blocked auto-fetch, so a fallback context was created." : "Reddit context fetched.");
       renderCommentStudio();
     } catch (error) {
       errorEl.textContent = error.message || "Could not fetch Reddit post. Try pasting the post text manually in the context box.";
@@ -1148,7 +1182,7 @@ function runQa() {
   });
 
   if (wordCount(comment) < 12) {
-    items.push({ level: "warn", text: "Too short — comment may be incomplete." });
+    items.push({ level: "warn", text: "Too short â€” comment may be incomplete." });
   }
   if (wordCount(comment) > 60) {
     items.push({ level: "warn", text: "Getting long. AI targets 15-40 words; Reddit users tune out walls of text." });
@@ -1687,7 +1721,7 @@ async function scrapeBatchUrls() {
         const { results: generatedComments, isIrrelevant } = await generateCommentsForPost(post);
         post.comments = isIrrelevant ? [{}, {}, {}] : generatedComments;
         post.isIrrelevant = isIrrelevant;
-        const detailSuffix = isIrrelevant ? " (skipped — post is irrelevant)" : "";
+        const detailSuffix = isIrrelevant ? " (skipped â€” post is irrelevant)" : "";
         if (existingIndex !== undefined) {
           state.posts[existingIndex] = post;
           updated += 1;
@@ -1864,12 +1898,12 @@ function init() {
   getWeeklyMoodBias();
   getDailyWritingBias();
   getAccountProfile();
-  console.log("[ORM] Phase 7 active — archetype:", getAccountProfile().archetypeId || "unset");
+  console.log("[ORM] Phase 7 active â€” archetype:", getAccountProfile().archetypeId || "unset");
 
-  // ── Platform radio buttons ──────────────────────────────────────
+  // â”€â”€ Platform radio buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const PLATFORM_HINTS = {
-    reddit: "💡 Paste a Reddit URL and click Fetch. The post will automatically be loaded.",
-    quora:  "💡 Quora is paste-only. Skip the URL and simply paste the text directly into the box below.",
+    reddit: "ðŸ’¡ Paste a Reddit URL and click Fetch. The post will automatically be loaded.",
+    quora:  "ðŸ’¡ Quora is paste-only. Skip the URL and simply paste the text directly into the box below.",
   };
 
   document.querySelectorAll('input[name="platform"]').forEach(radio => {
@@ -1885,17 +1919,17 @@ function init() {
   // Set initial chip
   setPlatform(currentPlatform());
 
-  // ── Fetch button ─────────────────────────────────────────────────
+  // â”€â”€ Fetch button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   $("fetchBtn").addEventListener("click", fetchContext);
 
-  // ── Generate button ──────────────────────────────────────────────
+  // â”€â”€ Generate button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   $("generateCommentsBtn").addEventListener("click", async () => {
     const post = currentPost();
     const replyMode = !!($("replyModeCheck") && $("replyModeCheck").checked);
     const parentComment = replyMode && $("parentCommentInput") ? $("parentCommentInput").value.trim() : "";
 
     if (!post.context && !post.title && !parentComment) {
-      toast("Add some post context first — fetch a URL or paste text.");
+      toast("Add some post context first â€” fetch a URL or paste text.");
       return;
     }
     if (replyMode && !parentComment) {
@@ -1903,7 +1937,7 @@ function init() {
       return;
     }
 
-    // Phase 5–8 advisory checks (non-blocking)
+    // Phase 5â€“8 advisory checks (non-blocking)
     const behaviorRisk = computeAccountBehaviorRisk();
     if (behaviorRisk) toast(behaviorRisk);
     const profile6 = getAccountProfile();
@@ -1920,7 +1954,7 @@ function init() {
 
     const btn = $("generateCommentsBtn");
     btn.disabled = true;
-    btn.textContent = "Generating…";
+    btn.textContent = "Generatingâ€¦";
     showIrrelevantBanner(false);
     currentPostIsIrrelevant = false;
     try {
@@ -1930,7 +1964,7 @@ function init() {
         currentPostIsIrrelevant = true;
         showIrrelevantBanner(true);
         trackUserFeedback("skip");
-        toast("Post isn't relevant to Samsung A37/A57 — no comments generated.");
+        toast("Post isn't relevant to Samsung A37/A57 â€” no comments generated.");
       } else if (comments.length > 0) {
         if (!document.querySelector(".comment-card")) {
           await renderCommentStudio(post);
@@ -1942,14 +1976,14 @@ function init() {
         toast("Could not generate. Try again.");
       }
     } catch {
-      toast("Generation failed — check your connection.");
+      toast("Generation failed â€” check your connection.");
     } finally {
       btn.disabled = false;
-      btn.textContent = "✦ Generate Comments";
+      btn.textContent = "âœ¦ Generate Comments";
     }
   });
 
-  // ── Save button (replaces form submit) ───────────────────────────
+  // â”€â”€ Save button (replaces form submit) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const saveBtn = $("saveBtn");
   if (saveBtn) saveBtn.addEventListener("click", savePost);
   // Keep legacy form submit wired in case anything calls it
@@ -1959,12 +1993,12 @@ function init() {
   $("newBtn").addEventListener("click", resetForm);
   $("nextUnreviewedBtn").addEventListener("click", findNextUnreviewed);
 
-  // ── Reply mode ───────────────────────────────────────────────────
+  // â”€â”€ Reply mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   $("replyModeCheck").addEventListener("change", (e) => {
     $("parentCommentWrap").style.display = e.target.checked ? "block" : "none";
   });
 
-  // ── Queue filters ────────────────────────────────────────────────
+  // â”€â”€ Queue filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   $("queueSearch").addEventListener("input", renderQueue);
   document.querySelectorAll(".fchip").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1985,14 +2019,14 @@ function init() {
 
   $("contextInput").addEventListener("input", autoClassify);
 
-  // ── Tracker search ───────────────────────────────────────────────
+  // â”€â”€ Tracker search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   $("searchInput").addEventListener("input", renderTracker);
   $("queueSearch").addEventListener("input", () => {
     $("searchInput").value = $("queueSearch").value;
     renderTracker();
   });
 
-  // ── Settings ─────────────────────────────────────────────────────
+  // â”€â”€ Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   $("settingsToggle").addEventListener("click", () => {
     const panel = $("settingsPanel");
     const overlay = $("settingsOverlay");
@@ -2032,7 +2066,7 @@ function init() {
     }
   });
 
-  // ── Tabs ─────────────────────────────────────────────────────────
+  // â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const tabs = document.querySelectorAll(".nav-tab");
   const tabContents = document.querySelectorAll(".tab-content");
   
@@ -2047,7 +2081,7 @@ function init() {
     }
   });
 
-  // ── Lead Finder ──────────────────────────────────────────────────
+  // â”€â”€ Lead Finder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   let currentLeads = [];
 
   const fetchLeads = async (query) => {
@@ -2078,7 +2112,7 @@ function init() {
       const data = await res.json();
       const posts = data.data.children;
       if (posts.length === 0) {
-        $("leadResults").innerHTML = `<div class="empty-state" style="margin-top: 40px;"><div class="empty-icon">🤷</div><p>No recent posts found for this query.</p></div>`;
+        $("leadResults").innerHTML = `<div class="empty-state" style="margin-top: 40px;"><div class="empty-icon">ðŸ¤·</div><p>No recent posts found for this query.</p></div>`;
         return;
       }
       
@@ -2109,7 +2143,7 @@ function init() {
         
         const commentsBadge = (p.num_comments === null || p.num_comments === undefined)
           ? ""
-          : `<span class="lead-comments">💬 ${p.num_comments}</span>`;
+          : `<span class="lead-comments">ðŸ’¬ ${p.num_comments}</span>`;
         const dateStr = p.created_utc ? new Date(p.created_utc * 1000).toLocaleDateString() : "";
 
         card.innerHTML = `
@@ -2145,7 +2179,7 @@ function init() {
            if (!val.includes(url)) {
              batchArea.value = val ? val + "\\n" + url : url;
              toast("Added to Batch Import.");
-             e.target.innerText = "Added ✓";
+             e.target.innerText = "Added âœ“";
              e.target.disabled = true;
            }
         });
@@ -2172,7 +2206,7 @@ function init() {
       const data = await res.json();
       const leads = data.leads || [];
       if (leads.length === 0) {
-        $("leadResults").innerHTML = `<div class="empty-state" style="margin-top: 40px;"><div class="empty-icon">📭</div><p>${data.message || "No harvested leads yet. Run the harvester locally first."}</p></div>`;
+        $("leadResults").innerHTML = `<div class="empty-state" style="margin-top: 40px;"><div class="empty-icon">ðŸ“­</div><p>${data.message || "No harvested leads yet. Run the harvester locally first."}</p></div>`;
         return;
       }
 
@@ -2189,12 +2223,12 @@ function init() {
 
         const tier = p.priorityScore >= 70 ? "hot" : p.priorityScore >= 45 ? "warm" : "cold";
         const scoreBadge = p.aiScore != null ? `<span class="lead-comments">Intent ${p.aiScore}/5</span>` : "";
-        const commentsBadge = (p.comments === null || p.comments === undefined) ? "" : `<span class="lead-comments">💬 ${p.comments}</span>`;
-        const upvotesBadge = (p.upvotes === null || p.upvotes === undefined) ? "" : `<span class="lead-comments">▲ ${p.upvotes}</span>`;
+        const commentsBadge = (p.comments === null || p.comments === undefined) ? "" : `<span class="lead-comments">ðŸ’¬ ${p.comments}</span>`;
+        const upvotesBadge = (p.upvotes === null || p.upvotes === undefined) ? "" : `<span class="lead-comments">â–² ${p.upvotes}</span>`;
 
         card.innerHTML = `
           <div class="lead-card-header">
-            <span class="lead-priority lead-priority-${tier}">★ ${p.priorityScore}</span>
+            <span class="lead-priority lead-priority-${tier}">â˜… ${p.priorityScore}</span>
             <span class="lead-subreddit">r/${p.subreddit}</span>
             ${p.phone ? `<span class="lead-comments">${p.phone}</span>` : ""}
             ${scoreBadge}
@@ -2227,7 +2261,7 @@ function init() {
            if (!val.includes(url)) {
              batchArea.value = val ? val + "\\n" + url : url;
              toast("Added to Batch Import.");
-             e.target.innerText = "Added ✓";
+             e.target.innerText = "Added âœ“";
              e.target.disabled = true;
            }
         });
@@ -2289,7 +2323,7 @@ function init() {
   $("startFilterBtn").addEventListener("click", startAIFilter);
   $("exportFilteredBtn").addEventListener("click", exportFilteredCsv);
 
-  // ── Batch + export ───────────────────────────────────────────────
+  // â”€â”€ Batch + export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   $("batchAddBtn").addEventListener("click", addBatchUrls);
   $("batchScrapeBtn").addEventListener("click", scrapeBatchUrls);
   $("exportCsvBtn").addEventListener("click", exportCsv);
@@ -2297,7 +2331,7 @@ function init() {
   $("importJsonInput").addEventListener("change", importJson);
 }
 
-// ── AI Filter Studio ───────────────────────────────────────────────
+// â”€â”€ AI Filter Studio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let filterAcceptedLeads = [];
 
 async function startAIFilter() {
@@ -2449,3 +2483,4 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
+

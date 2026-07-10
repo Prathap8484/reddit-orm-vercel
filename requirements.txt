@@ -1,6 +1,10 @@
-duckduckgo-search
-tenacity
-anthropic
-pydantic
+# Core
 requests
+anthropic
 python-dotenv
+tenacity
+
+# Existing
+duckduckgo-search
+pydantic
+psycopg2-binary
