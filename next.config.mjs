@@ -16,14 +16,6 @@ const nextConfig = {
       '../../src/db/index.js': '../../src/db/index.ts',
       '../../src/db/schema.js': '../../src/db/schema.ts'
     }
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/reddit-proxy/:path*',
-        destination: 'https://www.reddit.com/:path*',
-      },
-    ];
   }
 };
 
