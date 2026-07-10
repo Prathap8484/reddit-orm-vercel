@@ -1,4 +1,5 @@
 import os
+import sys
 import csv
 import json
 import time
@@ -10,7 +11,23 @@ import anthropic
 # Initialize Anthropic Client
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-BASE_TARGET_URL = "https://scriptio.in/samsung-review"
+CONFIG_FILE = 'config.json'
+if not os.path.exists(CONFIG_FILE):
+    print("Error: config.json not found. Please create it in the same directory.")
+    print("Format should be:")
+    print(json.dumps({
+        "queries": ["query1", "query2"],
+        "target_url": "https://example.com/target",
+        "model_tiers": ["Model 1", "Model 2", "NONE"]
+    }, indent=4))
+    sys.exit(1)
+
+with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+    CONFIG = json.load(f)
+
+BASE_TARGET_URL = CONFIG.get("target_url", "")
+MODEL_TIERS = CONFIG.get("model_tiers", ["NONE"])
+QUERIES = CONFIG.get("queries", [])
 
 # Define Personas
 CYNIC_PERSONA = """[SYSTEM ROLE]
@@ -32,7 +49,7 @@ Take the raw, poorly-spun input text, extract the core product stance, and rewri
    - Absolute Lowercase Start: The very first letter MUST be strictly lowercase.
    - Contraction Starvation: Strip apostrophes ("dont", "cant", "im", "doesnt").
    - Dropped Terminal Stop: Never put a period at the end of the final sentence.
-   - The Uncorrected Fat-Finger: Deliberately introduce exactly ONE simulated mobile QWERTY typo by hitting an adjacent letter. STRICT EXCEPTION: NEVER introduce typos into brand names (Samsung, Apple), product models (A57, A37, S26, S23U, iPhone), or numerical specifications (5000mAh, 45W). Only inject typos into stop words or adjectives."""
+   - The Uncorrected Fat-Finger: Deliberately introduce exactly ONE simulated mobile QWERTY typo by hitting an adjacent letter. STRICT EXCEPTION: NEVER introduce typos into brand names, product models, or numerical specifications. Only inject typos into stop words or adjectives."""
 
 RELUCTANT_PERSONA = """[SYSTEM ROLE]
 You are a reluctant upgrader who hates spending money. You kept your old phone for 4+ years and you despise the modern smartphone cycle. You only upgrade when absolutely necessary. 
@@ -87,20 +104,20 @@ TOOL_SCHEMA = {
     "properties": {
       "brand_safety_violation": {
         "type": "boolean",
-        "description": "True if the OP is complaining about severe hardware failure, fires, lawsuits, extreme anger towards Samsung, or physical injury. False otherwise."
+        "description": "True if the OP is complaining about severe hardware failure, fires, lawsuits, extreme anger towards the brand, or physical injury. False otherwise."
       },
       "scoring_checklist": {
         "type": "object",
         "properties": {
           "buying_intent_score": {"type": "integer"},
-          "samsung_natural_fit_score": {"type": "integer"},
+          "brand_natural_fit_score": {"type": "integer"},
           "budget_match_score": {"type": "integer"},
           "relevant_subreddit": {"type": "integer"},
           "op_open_to_suggestions": {"type": "integer"},
           "features_solve_problem": {"type": "integer"},
           "comment_adds_value": {"type": "integer"}
         },
-        "required": ["buying_intent_score", "samsung_natural_fit_score", "budget_match_score", "relevant_subreddit", "op_open_to_suggestions", "features_solve_problem", "comment_adds_value"]
+        "required": ["buying_intent_score", "brand_natural_fit_score", "budget_match_score", "relevant_subreddit", "op_open_to_suggestions", "features_solve_problem", "comment_adds_value"]
       },
       "total_score": {
         "type": "integer",
@@ -113,7 +130,7 @@ TOOL_SCHEMA = {
       },
       "recommended_model": {
         "type": "string",
-        "enum": ["Samsung Galaxy S26", "Samsung Galaxy A37", "Samsung Galaxy A57", "NONE"]
+        "enum": MODEL_TIERS
       },
       "drafted_comment": {
         "type": "string",
@@ -202,12 +219,7 @@ def pass_2_apply_persona(drafted_comment, model_tier):
         return drafted_comment, "Fallback"
 
 def run_pipeline():
-    queries = [
-        "Samsung upgrade advice",
-        "best mid range phone 2026",
-        "Galaxy A series worth it",
-        "buy Samsung Galaxy"
-    ]
+    queries = QUERIES
     output_file = 'output.tsv'
     
     with open(output_file, 'w', newline='', encoding='utf-8-sig') as f:
