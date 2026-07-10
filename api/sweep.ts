@@ -8,11 +8,11 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  // Enforce POST method for the webhook
-  if (req.method !== 'POST') {
+  // Enforce POST or GET method for the webhook
+  if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ 
       success: false, 
-      error: 'Method Not Allowed. Please send a POST request.' 
+      error: 'Method Not Allowed. Please send a POST or GET request.' 
     });
   }
 
