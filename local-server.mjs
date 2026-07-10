@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import fetchReddit from "./api/reddit.js";
 import generateComments from "./api/generate-comments.js";
 import fetchRedditSearch from "./api/reddit-search.js";
+import filterLeads from "./api/filter-leads.js";
 import leads from "./api/leads.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -52,7 +53,7 @@ function send(res, statusCode, body, headers = {}) {
   res.writeHead(statusCode, {
     "access-control-allow-origin": "*",
     "access-control-allow-methods": "GET,POST,OPTIONS",
-    "access-control-allow-headers": "content-type",
+    "access-control-allow-headers": "content-type,x-app-password",
     ...headers,
   });
   res.end(body);
@@ -90,6 +91,7 @@ const apiRoutes = {
   "/api/reddit": fetchReddit,
   "/api/generate-comments": generateComments,
   "/api/reddit-search": fetchRedditSearch,
+  "/api/filter-leads": filterLeads,
   "/api/leads": leads,
 };
 

@@ -12,6 +12,9 @@
 /**
  * Normalize any Reddit URL into the canonical JSON endpoint.
  * Supports: reddit.com, www.reddit.com, old.reddit.com, redd.it
+ *
+ * Fetches directly from Reddit — no third-party proxy needed because this
+ * runs server-side on Vercel where CORS is irrelevant.
  */
 function normalizeRedditUrl(input) {
   let url;
@@ -26,8 +29,7 @@ function normalizeRedditUrl(input) {
   if (host === "redd.it") {
     const id = url.pathname.split("/").filter(Boolean)[0];
     if (!id) throw new Error("Could not extract post ID from redd.it link.");
-    const redditUrl = `https://www.reddit.com/comments/${id}.json?raw_json=1`;
-    return `https://api.allorigins.win/raw?url=${encodeURIComponent(redditUrl)}`;
+    return `https://www.reddit.com/comments/${id}.json?raw_json=1`;
   }
 
   if (!host.endsWith("reddit.com")) {
@@ -44,8 +46,7 @@ function normalizeRedditUrl(input) {
   }
 
   if (!pathname.endsWith(".json")) pathname += ".json";
-  const redditUrl = `https://www.reddit.com${pathname}?raw_json=1`;
-  return `https://api.allorigins.win/raw?url=${encodeURIComponent(redditUrl)}`;
+  return `https://www.reddit.com${pathname}?raw_json=1`;
 }
 
 /** Clean and truncate text for safe display. */

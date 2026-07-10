@@ -5,9 +5,19 @@ import { clients, personas, logs } from "./db/schema.js";
 import { eq, inArray } from "drizzle-orm";
 import { HttpsProxyAgent } from "https-proxy-agent";
 
-const API_KEY = process.env.ANTHROPIC_API_KEY;
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error("Error: ANTHROPIC_API_KEY environment variable is not set.");
+  process.exit(1);
+}
+
+const API_KEY: string = process.env.ANTHROPIC_API_KEY;
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20240620";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+
+// Vercel free tier timeout is 60s. Stop processing at 50s to allow
+// a clean response before the hard cutoff.
+const TIME_BUDGET_MS = 50_000;
+const MAX_POSTS_PER_SUB = 3;
 
 function getRedditFetchOptions() {
   const options: any = { headers: { "user-agent": UA } };
@@ -17,11 +27,6 @@ function getRedditFetchOptions() {
     options.dispatcher = agent;
   }
   return options;
-}
-
-if (!API_KEY) {
-  console.error("Error: ANTHROPIC_API_KEY environment variable is not set.");
-  process.exit(1);
 }
 
 /**
@@ -67,8 +72,8 @@ async function fetchSubredditLinks(subreddit: string): Promise<string[]> {
       }
     });
     
-    // Return top 5 recent posts
-    return links.slice(0, 5);
+    // Return top posts (capped to stay within time budget)
+    return links.slice(0, MAX_POSTS_PER_SUB);
   } catch (error: any) {
     console.error(`    ⚠️ Error scraping subreddit r/${subreddit}:`, error.message);
     return [];
@@ -140,7 +145,7 @@ ${context.topComments || ""}`;
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": API_KEY,
+      "x-api-key": API_KEY as string,
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
@@ -167,7 +172,11 @@ async function wait(ms: number) {
 
 // --- Main Execution Engine ---
 export async function run() {
+  const startTime = Date.now();
+  const isTimeBudgetExceeded = () => (Date.now() - startTime) > TIME_BUDGET_MS;
+
   console.log("Initializing database-driven execution engine...");
+  console.log(`Time budget: ${TIME_BUDGET_MS / 1000}s`);
 
   const activeClients = await getActiveConfigurations();
 
@@ -194,6 +203,14 @@ export async function run() {
       }
       
       for (const subreddit of subreddits) {
+        // Time budget guard — stop before Vercel kills us
+        if (isTimeBudgetExceeded()) {
+          console.log(`\n    ⏱️ Time budget exceeded. Stopping sweep early to avoid Vercel timeout.`);
+          console.log(`    Processed so far in ${((Date.now() - startTime) / 1000).toFixed(1)}s. Remaining work will run next cron cycle.`);
+          console.log("\nPipeline execution complete (partial — time budget).");
+          return;
+        }
+
         console.log(`\n    -> Sweeping r/${subreddit}...`);
         
         // 1. Thread Discovery
@@ -223,6 +240,13 @@ export async function run() {
 
         // Process only brand new threads
         for (const postUrl of newPostUrls) {
+          // Check time budget before each post to avoid mid-processing timeout
+          if (isTimeBudgetExceeded()) {
+            console.log(`      ⏱️ Time budget hit mid-subreddit. Stopping gracefully.`);
+            console.log("\nPipeline execution complete (partial — time budget).");
+            return;
+          }
+
           try {
             console.log(`      [NEW] Processing: ${postUrl}`);
 
@@ -265,7 +289,8 @@ export async function run() {
     }
   }
 
-  console.log("\nPipeline execution complete.");
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log(`\nPipeline execution complete in ${elapsed}s.`);
 }
 
 

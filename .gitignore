@@ -24,38 +24,8 @@ Thumbs.db
 
 # Dated harvest snapshots (master.csv + filtered_leads.csv are the tracked data)
 harvest-*.csv
+broad-harvest-*.csv
 reports/harvest.log
-
-.vercel
-# Environment variables - NEVER commit API keys
-.env
-.env.local
-.env.*.local
-
-# Dependencies
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Vercel
-.vercel/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Dated harvest snapshots (master.csv + filtered_leads.csv are the tracked data)
-harvest-*.csv
-reports/harvest.log
-
-.vercel
 
 # Playwright
 /test-results/
@@ -63,5 +33,6 @@ reports/harvest.log
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
-.next
+
+# Next.js
 .next/

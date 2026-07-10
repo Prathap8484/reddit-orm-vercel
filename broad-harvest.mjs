@@ -8,18 +8,18 @@ const UA =
 
 const QUERIES = [
   { phone: "S26", q: 'galaxy s26 (buy OR buying OR upgrade OR worth OR "should i" OR recommend OR suggestion)' },
-  { phone: "S26", q: 's26 ultra OR s26 plus (buy OR buying OR upgrade OR worth OR "should i")' },
+  { phone: "S26", q: '(s26 ultra OR s26 plus) (buy OR buying OR upgrade OR worth OR "should i")' },
   { phone: "S26", q: 'best flagship android (buy OR upgrade OR camera OR battery OR recommend)' },
   { phone: "S26", q: '"upgrade from s22" OR "upgrade from s23" OR "upgrade from pixel 7"' },
   { phone: "S26", q: '"samsung vs pixel" flagship (buy OR upgrade OR recommend)' },
 
-  { phone: "A37", q: 'galaxy a37 OR samsung a37 (buy OR buying OR upgrade OR worth OR "should i")' },
+  { phone: "A37", q: '(galaxy a37 OR samsung a37) (buy OR buying OR upgrade OR worth OR "should i")' },
   { phone: "A37", q: '"best phone under 40000" (buy OR camera OR battery OR recommend)' },
   { phone: "A37", q: '"best phone under 500" android (buy OR camera OR battery OR recommend)' },
   { phone: "A37", q: '"upgrade from a34" OR "upgrade from a35" OR "upgrade from redmi note"' },
   { phone: "A37", q: '"samsung a series" (buy OR worth OR recommend OR camera OR battery)' },
 
-  { phone: "A57", q: 'galaxy a57 OR samsung a57 (buy OR buying OR upgrade OR worth OR "should i")' },
+  { phone: "A57", q: '(galaxy a57 OR samsung a57) (buy OR buying OR upgrade OR worth OR "should i")' },
   { phone: "A57", q: '"best phone under 60000" (buy OR camera OR battery OR recommend)' },
   { phone: "A57", q: '"best phone around 500" android (buy OR camera OR battery OR recommend)' },
   { phone: "A57", q: '"a series vs pixel" (buy OR worth OR camera OR battery)' },

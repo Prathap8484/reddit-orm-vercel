@@ -38,9 +38,22 @@ export default async function handler(req, res) {
 
       const t = new Date(r.published_date).getTime();
       const days = isNaN(t) ? 0 : (Date.now() - t) / (24 * 3600 * 1000);
+
+      // Derive AI score from the drafted_comment content rather than hardcoding 5.
+      // REJECTED posts stored by engine.ts start with "REJECTED:", drafted comments
+      // indicate an accepted post.
+      const comment = r.drafted_comment || "";
+      let aiScore = 3; // default mid-range
+      if (comment.startsWith("REJECTED:")) {
+        aiScore = 1;
+      } else if (comment.length > 100) {
+        aiScore = 5; // long, high-quality drafted comment
+      } else if (comment.length > 20) {
+        aiScore = 4; // shorter but present drafted comment
+      }
       
       const pScore = calculatePriority({
-        aiScore: 5,
+        aiScore,
         comments: r.num_comments || 0,
         days: days
       });
@@ -55,13 +68,13 @@ export default async function handler(req, res) {
         date: r.published_date ? new Date(r.published_date).toISOString() : "",
         comments: r.num_comments || 0,
         upvotes: r.upvotes || 0,
-        aiScore: 5,
+        aiScore,
         theme: "General",
         feature: "Various",
         country: "Global",
-        reason: r.drafted_comment || "",
-        drafted_comment: r.drafted_comment || "",
-        priorityScore: pScore > 0 ? pScore : 85, // Ensure high priority to appear in default view
+        reason: comment,
+        drafted_comment: comment,
+        priorityScore: pScore,
       };
     });
 

@@ -3,6 +3,8 @@ requests
 anthropic
 python-dotenv
 tenacity
+asyncpraw
+instructor
 
 # Existing
 duckduckgo-search
