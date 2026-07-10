@@ -14,8 +14,7 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/reddit-proxy/(.*)", "destination": "https://www.reddit.com/$1" },
-    { "source": "/((?!api/|dashboard|_next/|reddit-proxy/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|dashboard|_next/).*)", "destination": "/index.html" }
   ],
   "crons": [
     {
