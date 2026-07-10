@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { run } from '../src/engine';
+import { run } from '../src/engine.js';
 
 // Vercel Serverless Function Timeout Config (Free Tier Max: 60s)
 export const maxDuration = 60; 
