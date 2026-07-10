@@ -1,7 +1,7 @@
 import "dotenv/config";
 import * as cheerio from "cheerio";
-import { db } from "./db";
-import { clients, personas, logs } from "./db/schema";
+import { db } from "./db/index.js";
+import { clients, personas, logs } from "./db/schema.js";
 import { eq, inArray } from "drizzle-orm";
 
 const API_KEY = process.env.ANTHROPIC_API_KEY;

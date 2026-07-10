@@ -1,5 +1,5 @@
-import { db } from './db';
-import { clients, personas } from './db/schema';
+import { db } from './db/index.js';
+import { clients, personas } from './db/schema.js';
 import * as dotenv from 'dotenv';
 import { eq } from 'drizzle-orm';
 
