@@ -71,7 +71,24 @@ function setPlatform(value) {
   if (chip) chip.textContent = PLATFORM_LABELS[value] || value;
 }
 
-const $ = (id) => document.getElementById(id);
+const $ = (id) => {
+  const el = document.getElementById(id);
+  if (el) return el;
+  // CTO-level fallback: return a proxy to absorb all properties/methods to prevent crashes if UI elements are missing
+  const dummy = function() {};
+  return new Proxy(dummy, {
+    get: (target, prop) => {
+      if (prop === 'addEventListener') return () => {};
+      if (prop === 'style') return new Proxy({}, { get: () => '', set: () => true });
+      if (prop === 'classList') return { add: ()=>{}, remove: ()=>{}, toggle: ()=>{}, contains: ()=>false };
+      if (prop === 'appendChild' || prop === 'removeChild') return () => {};
+      if (prop === 'querySelector' || prop === 'querySelectorAll') return () => null;
+      if (prop === 'value' || prop === 'innerHTML' || prop === 'textContent') return '';
+      return undefined;
+    },
+    set: (target, prop, value) => true
+  });
+};
 
 function generateId() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -1875,9 +1892,9 @@ function init() {
 
   const savedTarget = loadSetting("orm_daily_target", "10");
   const savedName = loadSetting("orm_user_name", "");
-  $("dailyTargetInput").value = savedTarget;
-  $("userNameInput").value = savedName;
-  $("ownerInput").value = savedName;
+  if ($("dailyTargetInput")) $("dailyTargetInput").value = savedTarget;
+  if ($("userNameInput")) $("userNameInput").value = savedName;
+  if ($("ownerInput")) $("ownerInput").value = savedName;
   if ($("passcodeInput")) $("passcodeInput").value = localStorage.getItem("appPasscode") || "";
 
   resetForm();

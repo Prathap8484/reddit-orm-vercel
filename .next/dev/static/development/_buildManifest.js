@@ -1,10 +1,6 @@
 self.__BUILD_MANIFEST = {
   "__rewrites": {
-    "afterFiles": [
-      {
-        "source": "/reddit-proxy/:path*"
-      }
-    ],
+    "afterFiles": [],
     "beforeFiles": [],
     "fallback": []
   },
