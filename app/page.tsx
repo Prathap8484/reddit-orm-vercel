@@ -1,8 +1,19 @@
 'use client';
 
+import { useEffect } from 'react';
 import Navbar from './components/Navbar.js';
 
 export default function CommentStudioPage() {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = '/app.js';
+    script.defer = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   return (
     <>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -248,8 +259,6 @@ export default function CommentStudioPage() {
       </div>
 
       <div id="toast" className="toast"></div>
-
-      <script defer src="/app.js"></script>
     </>
   );
 }
