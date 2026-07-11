@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from './components/Navbar.js';
 
 export default function CommentStudioPage() {
+  const [activeTab, setActiveTab] = useState('studio');
+
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = '/app.js';
+    script.src = '/app.js?v=' + new Date().getTime();
     script.defer = true;
     document.body.appendChild(script);
     return () => {
@@ -68,21 +70,21 @@ export default function CommentStudioPage() {
         <main className="work-area">
           {/* Navigation Tabs */}
           <div className="nav-tabs">
-            <button className="nav-tab active" data-tab="studio">
+            <button className={`nav-tab ${activeTab === 'studio' ? 'active' : ''}`} onClick={() => setActiveTab('studio')} data-tab="studio">
               <span className="nav-tab-icon">✍️</span>
               <span className="nav-tab-text">
                 <span className="nav-tab-title">Comment Studio</span>
                 <span className="nav-tab-desc">Write natural comments</span>
               </span>
             </button>
-            <button className="nav-tab" data-tab="leads">
+            <button className={`nav-tab ${activeTab === 'leads' ? 'active' : ''}`} onClick={() => setActiveTab('leads')} data-tab="leads">
               <span className="nav-tab-icon">🔍</span>
               <span className="nav-tab-text">
                 <span className="nav-tab-title">Lead Finder</span>
                 <span className="nav-tab-desc">Discover buying-intent posts</span>
               </span>
             </button>
-            <button className="nav-tab" data-tab="filter">
+            <button className={`nav-tab ${activeTab === 'filter' ? 'active' : ''}`} onClick={() => setActiveTab('filter')} data-tab="filter">
               <span className="nav-tab-icon">✨</span>
               <span className="nav-tab-text">
                 <span className="nav-tab-title">AI Filter</span>
@@ -92,7 +94,7 @@ export default function CommentStudioPage() {
           </div>
 
           {/* TAB: COMMENT STUDIO */}
-          <div id="tab-studio" className="tab-content active">
+          <div id="tab-studio" className={`tab-content ${activeTab === 'studio' ? 'active' : ''}`}>
             <section className="step-card">
               <div className="sc-header">
                 <div className="sc-step-num">1</div>
@@ -186,7 +188,7 @@ export default function CommentStudioPage() {
           </div>
 
           {/* TAB: LEAD FINDER */}
-          <div id="tab-leads" className="tab-content">
+          <div id="tab-leads" className={`tab-content ${activeTab === 'leads' ? 'active' : ''}`}>
             <section className="step-card">
               <div className="sc-header" style={{ justifyContent: "space-between" }}>
                 <div>
@@ -196,7 +198,7 @@ export default function CommentStudioPage() {
                 <div style={{ display: "flex", gap: "10px" }}>
                   <button id="searchA37Btn" className="hdr-btn">Find A37 Mentions</button>
                   <button id="searchS26Btn" className="hdr-btn">Find S26 Mentions</button>
-                  <button id="priorityDashBtn" className="hdr-btn" style={{ background: "var(--indigo)", color: "white", borderColor: "var(--indigo)" }}>â˜… Priority Dashboard</button>
+                  <button id="priorityDashBtn" className="hdr-btn" style={{ background: "var(--indigo)", color: "white", borderColor: "var(--indigo)" }}>★ Priority Dashboard</button>
                 </div>
               </div>
               <div className="sc-body">
@@ -219,7 +221,7 @@ export default function CommentStudioPage() {
           </div>
 
           {/* TAB: FILTER STUDIO */}
-          <div id="tab-filter" className="tab-content">
+          <div id="tab-filter" className={`tab-content ${activeTab === 'filter' ? 'active' : ''}`}>
             <section className="step-card">
               <div className="sc-header">
                 <div className="sc-step-num">AI</div>
