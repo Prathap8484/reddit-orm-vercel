@@ -76,6 +76,16 @@ export default async function Dashboard() {
             </h1>
             <p className="text-slate-400 mt-2 text-sm font-medium tracking-wide">Real-time Reddit Brand Mentions</p>
           </div>
+
+          {/* UNIFIED NAVIGATION */}
+          <div className="flex gap-4 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+            <a href="/" className="text-slate-400 font-medium text-sm px-3 py-1 hover:text-white transition-colors">
+              Core Tools
+            </a>
+            <a href="/dashboard" className="text-white font-semibold text-sm bg-white/10 px-3 py-1 rounded-full">
+              Analytics Dashboard
+            </a>
+          </div>
         </header>
 
         {/* High-Level Metric Ribbon */}
