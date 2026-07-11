@@ -3,6 +3,8 @@ import * as schema from '../../src/db/schema.js';
 import { desc } from 'drizzle-orm';
 import SentimentChart from '../components/SentimentChart.js';
 
+import Navbar from '../components/Navbar.js';
+
 export const dynamic = 'force-dynamic';
 
 function cleanRedditUrl(url: string): string {
@@ -66,39 +68,21 @@ export default async function Dashboard() {
   ].filter(d => d.value > 0);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-200">
+    <main className="min-h-screen text-slate-200">
+      <Navbar />
       <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col gap-10">
-        {/* Header */}
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-sm">
-              Agency Intelligence
-            </h1>
-            <p className="text-slate-400 mt-2 text-sm font-medium tracking-wide">Real-time Reddit Brand Mentions</p>
-          </div>
-
-          {/* UNIFIED NAVIGATION */}
-          <div className="flex gap-4 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-            <a href="/" className="text-slate-400 font-medium text-sm px-3 py-1 hover:text-white transition-colors">
-              Core Tools
-            </a>
-            <a href="/dashboard" className="text-white font-semibold text-sm bg-white/10 px-3 py-1 rounded-full">
-              Analytics Dashboard
-            </a>
-          </div>
-        </header>
 
         {/* High-Level Metric Ribbon */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.07]">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.07]">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total Mentions</p>
             <div className="text-4xl font-black text-white">{totalMentions}</div>
           </div>
-          <div className="bg-emerald-500/5 backdrop-blur-md border border-emerald-500/10 p-6 rounded-2xl shadow-xl transition-all hover:bg-emerald-500/10">
+          <div className="bg-emerald-500/5 backdrop-blur-xl border border-emerald-500/10 p-6 rounded-2xl shadow-xl transition-all hover:bg-emerald-500/10">
             <p className="text-xs font-bold text-emerald-400/80 uppercase tracking-wider mb-2">Positive Sentiment</p>
             <div className="text-4xl font-black text-emerald-400">{positivePercent}%</div>
           </div>
-          <div className="bg-rose-500/5 backdrop-blur-md border border-rose-500/10 p-6 rounded-2xl shadow-xl transition-all hover:bg-rose-500/10">
+          <div className="bg-rose-500/5 backdrop-blur-xl border border-rose-500/10 p-6 rounded-2xl shadow-xl transition-all hover:bg-rose-500/10">
             <p className="text-xs font-bold text-rose-400/80 uppercase tracking-wider mb-2">Negative Sentiment</p>
             <div className="text-4xl font-black text-rose-400">{negativePercent}%</div>
           </div>
@@ -108,7 +92,7 @@ export default async function Dashboard() {
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Sentiment Breakdown Chart */}
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl shadow-xl col-span-1 flex flex-col items-center justify-center">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl col-span-1 flex flex-col items-center justify-center">
             <h2 className="text-lg font-bold text-white mb-4 self-start tracking-wide">Sentiment Breakdown</h2>
             {totalMentions > 0 ? (
                <SentimentChart data={chartData} />
@@ -118,7 +102,7 @@ export default async function Dashboard() {
           </div>
 
           {/* Recent Mentions Data Table */}
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl col-span-1 lg:col-span-2 overflow-hidden">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl col-span-1 lg:col-span-2 overflow-hidden">
             <div className="px-6 py-5 border-b border-white/10 bg-black/20">
               <h2 className="text-lg font-bold text-white tracking-wide">Recent Mentions Feed</h2>
             </div>

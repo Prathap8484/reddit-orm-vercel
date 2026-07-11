@@ -1,45 +1,32 @@
 'use client';
 
+import Navbar from './components/Navbar.js';
+
 export default function CommentStudioPage() {
   return (
     <>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       <link rel="stylesheet" href="/styles.css" />
 
-      {/* ══ HEADER ══ */}
-      <header className="hdr" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div className="hdr-brand">
-          <div className="hdr-logo">S</div>
-          <div>
-            <div className="hdr-title">Samsung ORM</div>
-            <div className="hdr-sub">Lead & Comment Engine</div>
-          </div>
-        </div>
-        
-        {/* UNIFIED NAVIGATION */}
-        <div style={{ display: 'flex', gap: '20px', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <a href="/" style={{ color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '14px', background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '14px' }}>
-            Core Tools
-          </a>
-          <a href="/dashboard" style={{ color: 'var(--slate-400)', textDecoration: 'none', fontWeight: 500, fontSize: '14px', padding: '4px 12px' }}>
-            Analytics Dashboard
-          </a>
-        </div>
-
-        <div className="hdr-stats">
-          <div className="stat-pill"><span id="metricPosted">0</span> posted</div>
-          <div className="stat-pill clr-amber"><span id="metricReview">0</span> to review</div>
-          <div className="stat-pill clr-blue"><span id="metricDrafted">0</span> drafted</div>
-          <div className="stat-pill" id="todayPill">0/<span id="metricDailyTarget">10</span> today</div>
-        </div>
-        <div className="hdr-actions">
-          <button className="hdr-btn" id="exportCsvBtn">Export CSV</button>
-          <button className="hdr-btn" id="exportJsonBtn">Export JSON</button>
-          <button className="hdr-btn hdr-btn-icon" id="settingsToggle" title="Settings">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          </button>
-        </div>
-      </header>
+      <Navbar 
+        rightContent={
+          <>
+            <div className="hdr-stats">
+              <div className="stat-pill"><span id="metricPosted">0</span> posted</div>
+              <div className="stat-pill clr-amber"><span id="metricReview">0</span> to review</div>
+              <div className="stat-pill clr-blue"><span id="metricDrafted">0</span> drafted</div>
+              <div className="stat-pill" id="todayPill">0/<span id="metricDailyTarget">10</span> today</div>
+            </div>
+            <div className="hdr-actions">
+              <button className="hdr-btn" id="exportCsvBtn">Export CSV</button>
+              <button className="hdr-btn" id="exportJsonBtn">Export JSON</button>
+              <button className="hdr-btn hdr-btn-icon" id="settingsToggle" title="Settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </button>
+            </div>
+          </>
+        }
+      />
 
       {/* ══ MAIN LAYOUT ══ */}
       <div className="layout">
